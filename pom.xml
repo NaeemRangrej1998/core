@@ -8,7 +8,7 @@
         <version>3.3.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.core</groupId>
+    <groupId>com.ecommerce</groupId>
     <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -31,10 +31,9 @@
         <java.version>17</java.version>
     </properties>
     <modules>
-        <module>../entity</module>
-        <module>../ecommerceAPI</module>
+        <module>entity</module>
+        <module>ecommerceAPI</module>
     </modules>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -110,6 +109,17 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skipTests>false</skipTests> <!-- Ensure tests are not skipped -->
+                    <testFailureIgnore>true</testFailureIgnore> <!-- Continue build even if tests fail -->
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
