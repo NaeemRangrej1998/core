@@ -1,7 +1,6 @@
 package com.ecommerce.service.jwt;
 
 import com.ecommerce.dto.response.JwtResponseDto;
-import com.ecommerce.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

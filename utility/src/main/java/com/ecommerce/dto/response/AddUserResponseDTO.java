@@ -1,18 +1,17 @@
 package com.ecommerce.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class AddUserResponseDTO {
     private Long id;
-
     private String firstName;
-
     private String lastName;
-
     private String email;
 }

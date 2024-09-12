@@ -1,13 +1,14 @@
 package com.ecommerce.controller;
 
-import com.ecommerce.dto.LoginRequestDto;
-import com.ecommerce.dto.RegistrationDTO;
+import com.ecommerce.dto.request.LoginRequestDto;
+import com.ecommerce.dto.request.RegistrationDTO;
 import com.ecommerce.dto.response.AddUserResponseDTO;
 import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.UserInfoDTO;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/singin")
-    public ResponseEntity<ApiResponse> singInUser(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<ApiResponse> singInUser(@RequestBody @Valid LoginRequestDto loginRequestDto) {
         try {
             JwtResponseDto jwtResponseDto = userService.singIn(loginRequestDto);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Sign in Success", jwtResponseDto));
@@ -37,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/addUser")
-    public ResponseEntity<ApiResponse> registerUser(@RequestBody RegistrationDTO userRegisterRequest) {
+    public ResponseEntity<ApiResponse> registerUser(@RequestBody @Valid RegistrationDTO userRegisterRequest) {
         try {
             AddUserResponseDTO addUserResponseDTO = userService.registerUser(userRegisterRequest);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "SignUp in Success", addUserResponseDTO));
