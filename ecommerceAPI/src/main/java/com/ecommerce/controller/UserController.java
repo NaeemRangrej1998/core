@@ -7,6 +7,7 @@ import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.UserInfoDTO;
 import com.ecommerce.exception.CustomException;
+import com.ecommerce.exception.UserNotFoundException;
 import com.ecommerce.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -39,14 +40,14 @@ public class UserController {
 
     @PostMapping("/addUser")
     public ResponseEntity<ApiResponse> registerUser(@RequestBody @Valid RegistrationDTO userRegisterRequest) {
-        try {
+//        try {
             AddUserResponseDTO addUserResponseDTO = userService.registerUser(userRegisterRequest);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "SignUp in Success", addUserResponseDTO));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException("Something Went Wrong", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+//        } catch (CustomException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            throw new CustomException("Something Went Wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
     }
 
     @GetMapping("/getUser")

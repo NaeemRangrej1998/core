@@ -7,9 +7,8 @@ import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.UserInfoDTO;
 
 import com.ecommerce.entity.UserEntity;
+import com.ecommerce.enums.ExceptionEnum;
 import com.ecommerce.exception.CustomException;
-import com.ecommerce.exception.UserAlreadyExistsException;
-import com.ecommerce.exception.UserNotFoundException;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.UserService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
@@ -36,9 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JwtResponseDto  singIn(LoginRequestDto loginRequestDto) {
-        UserEntity user = userRepository.getUserByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new UserNotFoundException("User Not Found For This Email"));
+        UserEntity user = userRepository.getUserByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_EXISTS.getValue(),HttpStatus.NOT_FOUND));
         if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new CustomException("Password Not Correct", HttpStatus.BAD_REQUEST);
+            throw new CustomException(ExceptionEnum.PASSWORD_NOT_CORRECT.getValue(), HttpStatus.NOT_FOUND);
         }
         return getTokenResponse(user);
     }
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
         if (userByUsername.isPresent()) {
-            throw new UserAlreadyExistsException("User already  exists");
+            throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
         }
         UserEntity user = new UserEntity();
         user.setEmail(userRegisterRequest.getEmail());
