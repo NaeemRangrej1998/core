@@ -46,7 +46,8 @@ public class SecurityConfig {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/auth/singin", "/auth/addUser").permitAll()
+                        .requestMatchers("/auth/singin").permitAll()
+                        .requestMatchers("/auth/addUser").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )
 //                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))

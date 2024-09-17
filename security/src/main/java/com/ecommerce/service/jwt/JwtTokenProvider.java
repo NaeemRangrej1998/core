@@ -10,18 +10,19 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -33,6 +34,8 @@ public class JwtTokenProvider {
 
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
+
+    private static final String APPLICATION_ROLE = "role";
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -69,25 +72,42 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public JwtResponseDto createAccessToken(String username) {
-
+    public JwtResponseDto createAccessToken(String username, String role) {
+        System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
+//        claims.put("APPLICATION_ROLE","ROLE_"+role.toUpperCase());
+        claims.put("APPLICATION_ROLE",role);
         String token = Jwts.builder()//
                 .setClaims(claims)//
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
-
+        System.out.println("creare token = " + token);
         return new JwtResponseDto(token); // Return the token wrapped in JwtResponseDto
 
     }
 
     public Authentication getAuthentication(String token) throws JsonProcessingException {
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        String role=getRole(token);
+        System.out.println("role getAuthentication= " + role);
+        grantedAuthorities.add(new SimpleGrantedAuthority(role));
         String userEmail = getUsername(token);
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
     }
+
+    private String getRole(String token) {
+        return (String) Jwts.parserBuilder()  // Use parserBuilder() instead of parser()
+                .setSigningKey(getSignInKey())  // Use getSignInKey() to get the signing key
+                .build()  // Build the parser
+                .parseClaimsJws(token)  // Parse the token
+                .getBody()  // Extract the body of the JWT
+                .get("APPLICATION_ROLE");  // Cast the role claim to a String
+    }
+
+
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);

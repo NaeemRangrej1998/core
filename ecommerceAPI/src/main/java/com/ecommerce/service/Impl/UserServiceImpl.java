@@ -6,9 +6,11 @@ import com.ecommerce.dto.response.AddUserResponseDTO;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.UserInfoDTO;
 
+import com.ecommerce.entity.RoleEntity;
 import com.ecommerce.entity.UserEntity;
 import com.ecommerce.enums.ExceptionEnum;
 import com.ecommerce.exception.CustomException;
+import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.UserService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
@@ -27,7 +29,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-
+    private  final RoleRepository roleRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public JwtResponseDto  singIn(LoginRequestDto loginRequestDto) {
         UserEntity user = userRepository.getUserByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_EXISTS.getValue(),HttpStatus.NOT_FOUND));
+//        String role =user.getRole().getName();
         if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
             throw new CustomException(ExceptionEnum.PASSWORD_NOT_CORRECT.getValue(), HttpStatus.NOT_FOUND);
         }
@@ -43,7 +46,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private JwtResponseDto getTokenResponse(UserEntity user) {
-            return jwtTokenProvider.createAccessToken(user.getEmail());
+            return jwtTokenProvider.createAccessToken(user.getEmail(),user.getRole().getName());
     }
 
     @Override
@@ -57,6 +60,8 @@ public class UserServiceImpl implements UserService {
     public AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest) {
         Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
+        RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException("Role is not available for this id",HttpStatus.NOT_FOUND));
+
         if (userByUsername.isPresent()) {
             throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
         }
@@ -65,6 +70,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRegisterRequest.getFirstName());
         user.setLastName(userRegisterRequest.getLastName());
         user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+        user.setRole(roleEntity);
         UserEntity savedUser = userRepository.save(user);
 
         AddUserResponseDTO  responseDTO = new AddUserResponseDTO();
@@ -72,6 +78,7 @@ public class UserServiceImpl implements UserService {
         responseDTO.setFirstName(savedUser.getFirstName());
         responseDTO.setLastName(savedUser.getLastName());
         responseDTO.setEmail(savedUser.getEmail());
+        responseDTO.setRole(savedUser.getRole().getName());
         return responseDTO;
     }
 

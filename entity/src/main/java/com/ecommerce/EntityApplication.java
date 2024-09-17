@@ -11,4 +11,5 @@ public class EntityApplication {
         SpringApplication.run(EntityApplication.class, args);
     }
 
+
 }

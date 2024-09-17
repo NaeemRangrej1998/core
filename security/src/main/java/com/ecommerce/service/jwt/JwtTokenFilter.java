@@ -51,6 +51,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     throw new CustomException(INVALID_JWT_TOKEN, HttpStatus.UNAUTHORIZED);
                 }
                 Authentication auth = jwtTokenProvider.getAuthentication(token);
+                System.out.println("auth = " + auth.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
             filterChain.doFilter(req, res);

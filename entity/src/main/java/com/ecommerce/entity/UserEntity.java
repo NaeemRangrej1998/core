@@ -2,6 +2,7 @@ package com.ecommerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -30,10 +31,14 @@ public class UserEntity implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_name")
+    private RoleEntity role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        System.out.println("role.getName() = " + role.getName());
+        return List.of(new SimpleGrantedAuthority(role.getName().toUpperCase()));
     }
 
     @Override

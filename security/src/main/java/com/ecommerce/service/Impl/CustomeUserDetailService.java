@@ -25,6 +25,8 @@ public class CustomeUserDetailService implements UserDetailsService {
             return User.builder()
                     .username(userObj.getEmail())
                     .password(userObj.getPassword())
+                    .authorities(userObj.getRole().getName().toUpperCase())
+//                    .authorities("ROLE_"+userObj.getRole().getName().toUpperCase())
                     .build();
         }else{
             throw new UsernameNotFoundException(username);
