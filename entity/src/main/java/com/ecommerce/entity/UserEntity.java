@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user")
-public class UserEntity implements UserDetails {
+public class UserEntity extends BaseAuditEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -69,5 +69,9 @@ public class UserEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public UserEntity(Long id) {
+        this.id = id;
     }
 }

@@ -1,6 +1,7 @@
 package com.ecommerce.service.jwt;
 
 import com.ecommerce.dto.response.JwtResponseDto;
+import com.ecommerce.dto.response.RefreshTokenResponseDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -72,11 +73,12 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public JwtResponseDto createAccessToken(String username, String role) {
+    public JwtResponseDto createAccessToken(String username, String role,Long id) {
         System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
 //        claims.put("APPLICATION_ROLE","ROLE_"+role.toUpperCase());
         claims.put("APPLICATION_ROLE",role);
+        claims.put("USER_ID",id);
         String token = Jwts.builder()//
                 .setClaims(claims)//
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -98,7 +100,7 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
     }
 
-    private String getRole(String token) {
+    public String getRole(String token) {
         return (String) Jwts.parserBuilder()  // Use parserBuilder() instead of parser()
                 .setSigningKey(getSignInKey())  // Use getSignInKey() to get the signing key
                 .build()  // Build the parser
@@ -107,8 +109,31 @@ public class JwtTokenProvider {
                 .get("APPLICATION_ROLE");  // Cast the role claim to a String
     }
 
+    public Long getUserId(String token) {
+        return Long.parseLong(Jwts.parserBuilder()  // Use parserBuilder() instead of parser()
+                .setSigningKey(getSignInKey())  // Use getSignInKey() to get the signing key
+                .build()  // Build the parser
+                .parseClaimsJws(token)  // Parse the token
+                .getBody()  // Extract the body of the JWT
+                .get("USER_ID").toString());  // Cast the role claim to a String
+    }
+    // create new token from old token
+    public RefreshTokenResponseDTO creatTokenFromRefreshToken(String token) {
+        System.out.println("new token " + token);
+        Claims claims = Jwts.claims().setSubject(getUsername(token));
+        claims.put("USER_ID", getUserId(token));
+        claims.put(APPLICATION_ROLE, getRole(token));
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + 86400000);
+        String newAccessTokenGenerateFromOldToken =  Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(validity)
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
 
-
+        return new RefreshTokenResponseDTO(newAccessTokenGenerateFromOldToken);
+    }
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
