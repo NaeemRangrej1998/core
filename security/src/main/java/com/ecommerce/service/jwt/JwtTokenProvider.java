@@ -30,11 +30,10 @@ import java.util.List;
 public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
 
-    @Value("${security.jwt.secret-key}")
-    private String secretKey;
-
-    @Value("${security.jwt.expiration-time}")
-    private long jwtExpiration;
+    private String secretKey ="3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b";
+//
+//    @Value("${security.jwt.expiration-time}")
+//    private long jwtExpiration;
 
     private static final String APPLICATION_ROLE = "role";
 
@@ -73,16 +72,18 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public JwtResponseDto createAccessToken(String username, String role,Long id) {
+    public JwtResponseDto createAccessToken(String username, String role, Long id) {
         System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
 //        claims.put("APPLICATION_ROLE","ROLE_"+role.toUpperCase());
-        claims.put("APPLICATION_ROLE",role);
-        claims.put("USER_ID",id);
+        claims.put("APPLICATION_ROLE", role);
+        claims.put("USER_ID", id);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + 900000);
         String token = Jwts.builder()//
                 .setClaims(claims)//
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setExpiration(validity)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
         System.out.println("creare token = " + token);
@@ -92,7 +93,7 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String token) throws JsonProcessingException {
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-        String role=getRole(token);
+        String role = getRole(token);
         System.out.println("role getAuthentication= " + role);
         grantedAuthorities.add(new SimpleGrantedAuthority(role));
         String userEmail = getUsername(token);
@@ -117,15 +118,15 @@ public class JwtTokenProvider {
                 .getBody()  // Extract the body of the JWT
                 .get("USER_ID").toString());  // Cast the role claim to a String
     }
-    // create new token from old token
+
     public RefreshTokenResponseDTO creatTokenFromRefreshToken(String token) {
         System.out.println("new token " + token);
         Claims claims = Jwts.claims().setSubject(getUsername(token));
         claims.put("USER_ID", getUserId(token));
-        claims.put(APPLICATION_ROLE, getRole(token));
+        claims.put("APPLICATION_ROLE", getRole(token));
         Date now = new Date();
         Date validity = new Date(now.getTime() + 86400000);
-        String newAccessTokenGenerateFromOldToken =  Jwts.builder()
+        String newAccessTokenGenerateFromOldToken = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(validity)
@@ -134,6 +135,7 @@ public class JwtTokenProvider {
 
         return new RefreshTokenResponseDTO(newAccessTokenGenerateFromOldToken);
     }
+
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);

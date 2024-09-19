@@ -15,8 +15,8 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class CustomeUserDetailService implements UserDetailsService {
-    @Autowired
-    private UserRepository userRepository;
+
+    private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserEntity> user = userRepository.getUserByEmail(username);
@@ -26,7 +26,7 @@ public class CustomeUserDetailService implements UserDetailsService {
                     .username(userObj.getEmail())
                     .password(userObj.getPassword())
                     .authorities(userObj.getRole().getName().toUpperCase())
-//                    .authorities("ROLE_"+userObj.getRole().getName().toUpperCase())
+                    .authorities(userObj.getRole().getName().toUpperCase())
                     .build();
         }else{
             throw new UsernameNotFoundException(username);

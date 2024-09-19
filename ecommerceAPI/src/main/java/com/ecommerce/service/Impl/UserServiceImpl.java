@@ -4,8 +4,7 @@ import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.request.RegistrationDTO;
 import com.ecommerce.dto.response.AddUserResponseDTO;
-import com.ecommerce.dto.response.JwtResponseDto;
-import com.ecommerce.dto.response.RefreshTokenResponseDTO;
+
 import com.ecommerce.dto.response.UserInfoDTO;
 
 import com.ecommerce.entity.RoleEntity;
@@ -17,9 +16,9 @@ import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.UserService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.CommonUtils;
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,37 +40,6 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public JwtResponseDto  singIn(LoginRequestDto loginRequestDto) {
-        UserEntity user = userRepository.getUserByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(),HttpStatus.NOT_FOUND));
-//        String role =user.getRole().getName();
-        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new CustomException(ExceptionEnum.PASSWORD_NOT_CORRECT.getValue(), HttpStatus.NOT_FOUND);
-        }
-        return getTokenResponse(user);
-    }
-
-    @Override
-    public RefreshTokenResponseDTO generateRefreshTokenFromOldToken(HttpServletRequest request) {
-        return generateRefreshToken(request);
-    }
-
-    private RefreshTokenResponseDTO generateRefreshToken(HttpServletRequest request) {
-        String refToken=jwtTokenProvider.resolveToken(request);
-        if ((refToken != null && !refToken.isEmpty())) {
-            try {
-                jwtTokenProvider.isTokenValid(refToken);
-            } catch (JwtException | IllegalArgumentException e) {
-                System.out.println("jwt exception catch block inside ::::::: ");
-            }
-        }
-        return jwtTokenProvider.creatTokenFromRefreshToken(refToken);
-    }
-
-    private JwtResponseDto getTokenResponse(UserEntity user) {
-            return jwtTokenProvider.createAccessToken(user.getEmail(),user.getRole().getName(),user.getId());
-    }
-
-    @Override
     public List<UserInfoDTO> getAllUsers() {
         List<UserEntity> userEntity=userRepository.findAll();
         return userEntity.stream().map(this::mapToUserInfoDTO).collect(Collectors.toList());
@@ -91,24 +59,45 @@ public class UserServiceImpl implements UserService {
         userEntity.setStatus(activeStatus);
         userEntity.setDeactivate(false);
         UserEntity savedUser = userRepository.save(userEntity);
+//        AddUserResponseDTO  responseDTO = new AddUserResponseDTO();
+//        responseDTO.setId(savedUser.getId());
+//        responseDTO.setFirstName(savedUser.getFirstName());
+//        responseDTO.setLastName(savedUser.getLastName());
+//        responseDTO.setEmail(savedUser.getEmail());
+//        responseDTO.setRoleName(savedUser.getRole().getName());
+        return mapToAddUserResponseDTO(savedUser);
+    }
 
-        AddUserResponseDTO  responseDTO = new AddUserResponseDTO();
-        responseDTO.setId(savedUser.getId());
-        responseDTO.setFirstName(savedUser.getFirstName());
-        responseDTO.setLastName(savedUser.getLastName());
-        responseDTO.setEmail(savedUser.getEmail());
-        responseDTO.setRoleName(savedUser.getRole().getName());
-        return responseDTO;
+    @Override
+    public AddUserResponseDTO updateUser(Long id, RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
+        UserEntity userEntity=getUserEntity(id);
+        RoleEntity role=getRoleEntity(userRegisterRequest.getRoleName());
+        userEntity.setEmail(userRegisterRequest.getEmail());
+        userEntity.setFirstName(userRegisterRequest.getFirstName());
+        userEntity.setLastName(userRegisterRequest.getLastName());
+        userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+        userEntity.setRole(role);
+        userEntity.setUpdatedDate(CommonUtils.getDateTime());
+        userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        userEntity.setStatus(true);
+        userEntity.setDeactivate(false);
+        userRepository.save(userEntity);
+        return mapToAddUserResponseDTO(userEntity);
     }
 
     private UserEntity getUserEntity(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
     }
 
+    private RoleEntity getRoleEntity(String roleName) {
+        return roleRepository.findByName(roleName).orElseThrow(() -> new CustomException("Role Not Found", HttpStatus.NOT_FOUND));
+    }
+
 
     @Override
     public AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest , GetTokenClaimsDTO claimsDTO) {
 //        System.out.println("userId = " + currentUserId);
+
         Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
         RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException("Role is not available for this id",HttpStatus.NOT_FOUND));
@@ -129,14 +118,7 @@ public class UserServiceImpl implements UserService {
         user.setStatus(true);
         user.setDeactivate(false);
         UserEntity savedUser = userRepository.save(user);
-
-        AddUserResponseDTO  responseDTO = new AddUserResponseDTO();
-        responseDTO.setId(savedUser.getId());
-        responseDTO.setFirstName(savedUser.getFirstName());
-        responseDTO.setLastName(savedUser.getLastName());
-        responseDTO.setEmail(savedUser.getEmail());
-        responseDTO.setRoleName(savedUser.getRole().getName());
-        return responseDTO;
+        return mapToAddUserResponseDTO(savedUser);
     }
 
     public UserInfoDTO mapToUserInfoDTO(UserEntity userEntity){
@@ -146,5 +128,14 @@ public class UserServiceImpl implements UserService {
         infoDTO.setLastName(userEntity.getLastName());
         infoDTO.setEmail(userEntity.getEmail());
         return infoDTO;
+    }
+    public AddUserResponseDTO mapToAddUserResponseDTO(UserEntity entity){
+        AddUserResponseDTO  responseDTO = new AddUserResponseDTO();
+        responseDTO.setId(entity.getId());
+        responseDTO.setFirstName(entity.getFirstName());
+        responseDTO.setLastName(entity.getLastName());
+        responseDTO.setEmail(entity.getEmail());
+        responseDTO.setRoleName(entity.getRole().getName());
+        return responseDTO;
     }
 }

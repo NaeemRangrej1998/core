@@ -17,13 +17,10 @@ public interface UserService {
 
     AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO);
 
-    JwtResponseDto singIn(LoginRequestDto loginRequestDto);
-
-    RefreshTokenResponseDTO generateRefreshTokenFromOldToken(HttpServletRequest request);
-
     List<UserInfoDTO> getAllUsers();
 
     UserInfoDTO getUserById(Long userId);
     AddUserResponseDTO updateUserStatusById(Long userId ,boolean activeStatus,GetTokenClaimsDTO claimsDTO);
 
+    AddUserResponseDTO updateUser(Long id, RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO);
 }
