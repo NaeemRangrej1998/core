@@ -46,7 +46,7 @@ public class SecurityConfig {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/auth/singin","excel/upload").permitAll()
+                        .requestMatchers("/auth/singin","/excel/upload").permitAll()
                         .requestMatchers("/user/*","/role/*").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )

@@ -1,12 +1,13 @@
 package com.ecommerce.service.Impl;
 
-import org.springframework.stereotype.Service;
+import com.ecommerce.entity.Tutorial;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
-@Service
+
 public interface TutorialExcelService {
 
-    void save(MultipartFile file) throws IOException;
+    List<Tutorial> save(MultipartFile file) throws IOException;
 }
