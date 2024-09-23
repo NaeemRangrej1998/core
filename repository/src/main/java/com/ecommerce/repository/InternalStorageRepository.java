@@ -11,3 +11,4 @@ public interface InternalStorageRepository extends JpaRepository<InternalStorage
 
     Optional<InternalStorageEntity> findByInternalStorage(String internalStorage);
 }
+
