@@ -9,13 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Entity
-@Table(name = "model")
-public class ModelEntity {
+@Table(name = "model",indexes = @Index(name = "index_model", columnList = "modalName",unique = true))
+public class ModelEntity extends BaseAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "model_name", unique = true)
+    @Column(name = "model_name")
     private String modalName;
 
 

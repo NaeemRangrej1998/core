@@ -23,7 +23,7 @@ public class LoginServiceImpl implements LoginService {
 
     private final UserRepository userRepository;
 
-    private  final RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -45,7 +45,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private RefreshTokenResponseDTO generateRefreshToken(HttpServletRequest request) {
-        String refToken=jwtTokenProvider.resolveToken(request);
+        String refToken = jwtTokenProvider.resolveToken(request);
         if ((refToken != null && !refToken.isEmpty())) {
             try {
                 jwtTokenProvider.isTokenValid(refToken);
@@ -56,7 +56,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private JwtResponseDto getTokenResponse(UserEntity user) {
-        return jwtTokenProvider.createAccessToken(user.getEmail(),user.getRole().getName(),user.getId());
+        return jwtTokenProvider.createAccessToken(user.getEmail(), user.getRole().getName(), user.getId());
     }
 
 }

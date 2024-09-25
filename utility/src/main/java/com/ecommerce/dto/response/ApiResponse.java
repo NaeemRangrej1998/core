@@ -1,17 +1,19 @@
 package com.ecommerce.dto.response;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 import org.springframework.http.HttpStatus;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)  // This ensures null values won't be included in the JSON response
 public class ApiResponse {
     private int status;
     private String message;
     private Object data;
     private HttpStatus httpStatus;
-
-    public ApiResponse() {
-    }
 
     public ApiResponse(HttpStatus httpStatus, String message, Object data) {
         this.httpStatus = httpStatus;

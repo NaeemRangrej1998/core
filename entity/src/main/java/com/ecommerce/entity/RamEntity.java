@@ -9,13 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Entity
-@Table(name = "ram")
-public class RamEntity {
+@Table(name = "ram",indexes = @Index(name = "index_ram", columnList = "ram",unique = true))
+public class RamEntity extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ram", unique = true)
+    @Column(name = "ram")
     private String ram;
 
 

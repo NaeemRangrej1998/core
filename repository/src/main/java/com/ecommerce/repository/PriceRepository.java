@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface PriceRepository extends JpaRepository<PriceEntity,Long> {
-    Optional<PriceEntity> findByPrice(Long price);
+    Optional<PriceEntity> findByPrice(Double price);
 }

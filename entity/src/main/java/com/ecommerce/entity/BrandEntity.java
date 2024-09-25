@@ -3,22 +3,20 @@ package com.ecommerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Entity
-@Table(name = "price",indexes = @Index(name = "index_price", columnList = "price",unique = true))
-public class PriceEntity extends BaseAuditEntity {
+@Table(name = "brand",indexes = @Index(name = "index_brand", columnList = "brandName",unique = true))
+public class BrandEntity extends BaseAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "price")
-    private Double price;
-
+    @Column(name = "brand_name")
+    private String brandName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
