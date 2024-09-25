@@ -11,7 +11,7 @@ public interface RoleService {
 
     RoleResponseDTO addRole(RoleRequestDTO requestDTO);
 
-     List<RoleResponseDTO> getAllRoles();
+    List<RoleResponseDTO> getAllRoles();
 
     RoleResponseDTO getRoleById(Long id);
 

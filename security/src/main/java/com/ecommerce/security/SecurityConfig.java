@@ -48,7 +48,7 @@ public class SecurityConfig {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/auth/singin","/excel/upload").permitAll()
+                        .requestMatchers(PUBLICURL).permitAll()
                         .requestMatchers("/user/*","/role/*","/api/excel/*").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -58,5 +58,12 @@ public class SecurityConfig {
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
+
+    private static  String[] PUBLICURL= {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/auth/singin",
+            "/excel/upload"
+    };
 
 }

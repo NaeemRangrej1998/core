@@ -65,7 +65,6 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Status Changed", infoDTO));
     }
     @PutMapping("/updateUser/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @RequestBody @Valid RegistrationDTO userRegisterRequest, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         AddUserResponseDTO infoDTO= userService.updateUser(id, userRegisterRequest,claimsDTO);
