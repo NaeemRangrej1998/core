@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setStatus(true);
             userEntity.setDeactivate(false);
             userRepository.save(userEntity);
-            Optional<RoleMappingEntity> optionalUser = roleMappingRepository.findByUserEntity(userEntity);
+            Optional<RoleMappingEntity> optionalUser = roleMappingRepository.findById(userEntity.getId());
 
             RoleMappingEntity roleMappingEntity;
             if (optionalUser.isPresent()) {
@@ -132,11 +132,22 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserInfoDTO mapToUserInfoDTO(UserEntity userEntity) {
+        Optional<List<RoleMappingEntity>> roleMappingsOpt = Optional.ofNullable(roleMappingRepository.findByUserEntity(userEntity));
+
+        // Extract role names from role mappings
         UserInfoDTO infoDTO = new UserInfoDTO();
         infoDTO.setId(userEntity.getId());
         infoDTO.setFirstName(userEntity.getFirstName());
         infoDTO.setLastName(userEntity.getLastName());
         infoDTO.setEmail(userEntity.getEmail());
+
+        if (roleMappingsOpt.isPresent()){
+            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();
+            List<String> rolesNameList = roleMappings.stream()
+                    .map(mapping -> mapping.getRoleEntity().getName())  // Get the role name
+                    .toList();
+            infoDTO.setRolesNameList(rolesNameList);
+        }
         return infoDTO;
     }
 

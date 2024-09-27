@@ -51,13 +51,13 @@ public class ExcelServiceImpl implements ExcelService {
         Workbook workbook = new XSSFWorkbook(multipartFile.getInputStream());
 
         //Create Sheet For Which To Use
+
         Sheet sheet = workbook.getSheetAt(0);
 
         for (Row row : sheet) {
             if (row.getRowNum() == 0) {
                 continue;
             }
-//            try {
             //GETTING VALUE FORM EXCEL FILE FOR FINDING THAT VALUE IN DATABASE
             String categoryName = row.getCell(0).getStringCellValue();
             String brandName = row.getCell(1).getStringCellValue();
@@ -70,8 +70,6 @@ public class ExcelServiceImpl implements ExcelService {
             String screenSize = row.getCell(8).getStringCellValue();
             String batteryCapacity = row.getCell(9).getStringCellValue();
             String processor = row.getCell(10).getStringCellValue();
-//            Double price = row.getCell(5).getNumericCellValue();
-            System.out.println("categoryName = " + categoryName + " " + " ");
 
 
             //fOR FIND IF VALUE ALREADY PRESENT THEN IT'S RETURN THAT VALUE OTHERWISE SAVE IT THEN RETURN IT
@@ -101,14 +99,6 @@ public class ExcelServiceImpl implements ExcelService {
             ScreenSizeEntity screenSizeEntity = screenSizeRepository.findByScreenSize(screenSize).orElseGet(() -> getOldOrCreateNewScreenSizeEntity(screenSize, categoryEntity, claimsDTO));
             ProcessorEntity processorEntity = processorRepository.findByProcessorName(processor).orElseGet(() -> getOldOrCreateNewProcessorEntity(processor, categoryEntity, claimsDTO));
             SimSlotEntity simSlotEntity = simSlotRepository.findBySimSlot(simSlot).orElseGet(() -> getOldOrCreateNewSimSlotEntity(simSlot, categoryEntity, claimsDTO));
-//            PriceEntity priceEntity = priceRepository.findByPrice(price).orElseGet(() -> getOldOrCreateNewPriceEntity(price, categoryEntity, claimsDTO));
-
-//            ProductEntity productEntity = new ProductEntity();
-//            productEntity.setCategoryEntity(categoryEntity);
-//            productEntity.setModelEntity(modelEntity);
-//            productEntity.setColorEntity(colorEntity);
-//            productEntity.setRamEntity(ramEntity);
-//            productEntity.setInternalStorageEntity(internalStorageEntity);
             List<ProductEntity> productEntities = new ArrayList<ProductEntity>();
 
             for (ColorEntity colorEntity : colorEntityList) {
@@ -141,23 +131,6 @@ public class ExcelServiceImpl implements ExcelService {
                     }
                 }
             }
-
-
-//            colorEntity.forEach(colorEntity1 -> {
-
-//            });
-
-            // Save the new ProductEntity
-//            System.out.println("productEntity1.get().getCategoryEntity() = " + productEntity1.get().getCategoryEntity());
-////            System.out.println("productEntity1 = " + productEntity1.isPresent());
-//            if (productEntity1.isEmpty()) {
-//                productRepository.save(productEntity);
-//            }
-//            }catch (Exception e) {
-//                // Handle row-specific exceptions
-//                System.err.println("Error processing row " + row.getRowNum() + ": " + e.getMessage());
-//                e.printStackTrace();
-//            }
         }
     }
 

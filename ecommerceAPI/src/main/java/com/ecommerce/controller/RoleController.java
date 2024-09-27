@@ -44,4 +44,6 @@ public class RoleController {
         RoleResponseDTO response  = this.roleService.updateRoleById(id, roleRequestDTO);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
     }
+
+
 }
