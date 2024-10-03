@@ -1,5 +1,6 @@
 package com.ecommerce.security;
 
+import com.ecommerce.config.CrossOriginFilter;
 import com.ecommerce.service.Impl.CustomeUserDetailService;
 //import com.ecommerce.service.jwt.JwtAuthenticationEntryPoint;
 import com.ecommerce.service.jwt.JwtTokenFilter;
@@ -25,6 +26,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private JwtTokenFilter jwtTokenFilter;
+
+    private final CrossOriginFilter crossOriginFilter;
 //    private JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     //todo try to create custom
@@ -46,16 +49,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
+                .cors(configure -> configure.configurationSource(crossOriginFilter.corsConfigurationSource()))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(PUBLICURL).permitAll()
-                        .requestMatchers("/user/*","/role/*","/api/excel/*").hasAuthority("ADMIN")
+                        .requestMatchers("/role/*","/api/excel/*").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
 //                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+//        httpSecurity.cors(cors -> cors.configurationSource(corsConfig.corsFilter()));
+
         return httpSecurity.build();
     }
 
@@ -63,7 +68,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/auth/singin",
-            "/excel/upload"
+            "/excel/upload","/user/*"
+
     };
 
 }

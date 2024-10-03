@@ -18,7 +18,7 @@ public class BrandEntity extends BaseAuditEntity{
     @Column(name = "brand_name")
     private String brandName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY ,cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private CategoryEntity categoryEntity;
 }

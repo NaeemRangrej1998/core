@@ -28,5 +28,7 @@ public class RegistrationDTO {
 
     private String password;
 
-    private String roleName;
+//    private String roleName;
+
+    private Long roleId;
 }

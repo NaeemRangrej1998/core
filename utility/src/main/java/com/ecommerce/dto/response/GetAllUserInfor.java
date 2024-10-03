@@ -1,5 +1,6 @@
 package com.ecommerce.dto.response;
 
+
 import com.ecommerce.entity.RoleEntity;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class UserInfoDTO {
+public class GetAllUserInfor {
     private Long id;
 
     private String firstName;
@@ -22,7 +23,7 @@ public class UserInfoDTO {
 
     private String password;
 
-    private Long roleId;
+    private String roleName;
 
 //    private List<String> rolesNameList;
 }

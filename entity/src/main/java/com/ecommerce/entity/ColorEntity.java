@@ -17,7 +17,7 @@ public class ColorEntity extends BaseAuditEntity {
     @Column(name = "color_name")
     private String colorName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY ,cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private CategoryEntity categoryEntity;
 

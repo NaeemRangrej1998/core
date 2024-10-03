@@ -1,9 +1,12 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RoleRequestDTO;
 import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.RoleResponseDTO;
 import com.ecommerce.service.RoleService;
+import com.ecommerce.utils.GetClaimsUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,18 +15,22 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/role")
+@CrossOrigin("http://localhost:3000")
 public class RoleController {
 
     private final RoleService roleService;
+    private final GetClaimsUtils claimsUtils;
 
-    public RoleController(RoleService roleService) {
+    public RoleController(RoleService roleService, GetClaimsUtils claimsUtils) {
         this.roleService = roleService;
+        this.claimsUtils = claimsUtils;
     }
 
 
     @PostMapping("/addRole")
-    public ResponseEntity<ApiResponse> addUser(@RequestBody RoleRequestDTO roleRequestDTO) {
-        RoleResponseDTO addUserResponseDTO = roleService.addRole(roleRequestDTO);
+    public ResponseEntity<ApiResponse> addUser(@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        RoleResponseDTO addUserResponseDTO = roleService.addRole(roleRequestDTO,claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Role Added", addUserResponseDTO));
     }
 
@@ -34,14 +41,22 @@ public class RoleController {
     }
 
     @GetMapping("/getRoleById/{id}")
-    public ResponseEntity<ApiResponse> getRoleById(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<ApiResponse> getRoleById(@PathVariable(value = "id") Long id, HttpServletRequest request) {
         RoleResponseDTO response  = this.roleService.getRoleById(id);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
     }
 
     @PutMapping("/updateRole/{id}")
-    public ResponseEntity<ApiResponse> updateRole(@PathVariable(value = "id") Long id,@RequestBody RoleRequestDTO roleRequestDTO) {
-        RoleResponseDTO response  = this.roleService.updateRoleById(id, roleRequestDTO);
+    public ResponseEntity<ApiResponse> updateRole(@PathVariable(value = "id") Long id,@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        RoleResponseDTO response  = this.roleService.updateRoleById(id, roleRequestDTO,claimsDTO);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/deleteRole/{id}")
+    public ResponseEntity<ApiResponse> deleteRoleById(@PathVariable(value = "id") Long id,@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        RoleResponseDTO response  = this.roleService.deleteRoleById(id, roleRequestDTO,claimsDTO);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
     }
 

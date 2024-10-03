@@ -17,7 +17,7 @@ public class BatteryCapacityEntity extends BaseAuditEntity {
     @Column(name = "battery_capacity")
     private String batteryCapacity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY ,cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private CategoryEntity categoryEntity;
 

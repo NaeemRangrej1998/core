@@ -6,7 +6,6 @@ import com.ecommerce.dto.request.RegistrationDTO;
 import com.ecommerce.dto.response.*;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.service.LoginService;
-import com.ecommerce.service.UserService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.GetClaimsUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+//@CrossOrigin("http://localhost:3000")
 public class LoginController {
     private final LoginService loginService;
     private final GetClaimsUtils claimsUtils;

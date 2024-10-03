@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
+//@CrossOrigin("http://localhost:3000")
 public class UserController {
 
     private final UserService userService;
@@ -69,6 +70,13 @@ public class UserController {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         AddUserResponseDTO infoDTO= userService.updateUser(id, userRegisterRequest,claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Updated Successfully", infoDTO));
+    }
+
+    @DeleteMapping("/deleteUser/{id}")
+    public ResponseEntity<ApiResponse> deleteUserById(@PathVariable("id") Long id, HttpServletRequest request) {
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        userService.deleteUserById(id,claimsDTO);
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Deleted Successfully"));
     }
     @GetMapping("/Name")
     public String getName() {

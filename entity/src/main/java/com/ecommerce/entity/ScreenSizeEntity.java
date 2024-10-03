@@ -18,7 +18,7 @@ public class ScreenSizeEntity extends BaseAuditEntity{
     @Column(name = "screen_size")
     private String screenSize;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private CategoryEntity categoryEntity;
 }

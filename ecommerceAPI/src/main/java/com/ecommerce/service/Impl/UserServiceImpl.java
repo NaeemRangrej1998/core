@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserInfoDTO> getAllUsers() {
-        List<UserEntity> userEntity = userRepository.findAll();
+        List<UserEntity> userEntity = userRepository.getUserEntityByStatusAndDeactivate(true, false);
         return userEntity.stream().map(this::mapToUserInfoDTO).collect(Collectors.toList());
     }
 
@@ -67,7 +67,9 @@ public class UserServiceImpl implements UserService {
 
         Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
-        RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+//        RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+
+        RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
 
         if (userByUsername.isPresent()) {
             throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
@@ -86,9 +88,15 @@ public class UserServiceImpl implements UserService {
         user.setDeactivate(false);
         UserEntity savedUser = userRepository.save(user);
 
-        RoleMappingEntity roleMappingEntity=new RoleMappingEntity();
+        RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
         roleMappingEntity.setUserEntity(user);
         roleMappingEntity.setRoleEntity(roleEntity);
+        roleMappingEntity.setCreatedDate(CommonUtils.getDateTime());
+        roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
+        roleMappingEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleMappingEntity.setStatus(true);
+        roleMappingEntity.setDeactivate(false);
         roleMappingRepository.save(roleMappingEntity);
 
         return mapToAddUserResponseDTO(savedUser);
@@ -98,11 +106,11 @@ public class UserServiceImpl implements UserService {
     public AddUserResponseDTO updateUser(Long id, RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
         try {
             UserEntity userEntity = getUserEntity(id);
-            RoleEntity roleEntity = getRoleEntity(userRegisterRequest.getRoleName());
+            RoleEntity roleEntity = getRoleEntity(userRegisterRequest.getRoleId());
             userEntity.setEmail(userRegisterRequest.getEmail());
             userEntity.setFirstName(userRegisterRequest.getFirstName());
             userEntity.setLastName(userRegisterRequest.getLastName());
-            userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+//            userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
             userEntity.setRole(roleEntity);
             userEntity.setUpdatedDate(CommonUtils.getDateTime());
             userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
@@ -113,8 +121,13 @@ public class UserServiceImpl implements UserService {
 
             RoleMappingEntity roleMappingEntity;
             if (optionalUser.isPresent()) {
-                roleMappingEntity= optionalUser.get();
+                roleMappingEntity = optionalUser.get();
                 roleMappingEntity.setRoleEntity(roleEntity);
+                roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
+                roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+                roleMappingEntity.setStatus(true);
+                roleMappingEntity.setDeactivate(false);
+                userEntity.setUpdatedDate(CommonUtils.getDateTime());
                 roleMappingRepository.save(roleMappingEntity);
             }
             return mapToAddUserResponseDTO(userEntity);
@@ -123,12 +136,27 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void deleteUserById(Long id, GetTokenClaimsDTO claimsDTO) {
+        try {
+            UserEntity userEntity = getUserEntity(id);
+            userEntity.setStatus(false);
+            userEntity.setDeactivate(true);
+            userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            userEntity.setUpdatedDate(CommonUtils.getDateTime());
+            userRepository.save(userEntity);
+        } catch (CustomException e) {
+            throw new CustomException(e.getMessage(), e.getHttpStatus());
+        }
+
+    }
+
     private UserEntity getUserEntity(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
     }
 
-    private RoleEntity getRoleEntity(String roleName) {
-        return roleRepository.findByName(roleName).orElseThrow(() -> new CustomException("Role Not Found", HttpStatus.NOT_FOUND));
+    private RoleEntity getRoleEntity(Long roleId) {
+        return roleRepository.findById(roleId).orElseThrow(() -> new CustomException("Role Not Found", HttpStatus.NOT_FOUND));
     }
 
     public UserInfoDTO mapToUserInfoDTO(UserEntity userEntity) {
@@ -140,14 +168,16 @@ public class UserServiceImpl implements UserService {
         infoDTO.setFirstName(userEntity.getFirstName());
         infoDTO.setLastName(userEntity.getLastName());
         infoDTO.setEmail(userEntity.getEmail());
+        infoDTO.setPassword(userEntity.getPassword());
+        infoDTO.setRoleId(userEntity.getRole().getId());
 
-        if (roleMappingsOpt.isPresent()){
-            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();
-            List<String> rolesNameList = roleMappings.stream()
-                    .map(mapping -> mapping.getRoleEntity().getName())  // Get the role name
-                    .toList();
-            infoDTO.setRolesNameList(rolesNameList);
-        }
+//        if (roleMappingsOpt.isPresent()){
+//            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();
+//            List<String> rolesNameList = roleMappings.stream()
+//                    .map(mapping -> mapping.getRoleEntity().getName())  // Get the role name
+//                    .toList();
+//            infoDTO.setRolesNameList(rolesNameList);
+//        }
         return infoDTO;
     }
 
@@ -157,7 +187,7 @@ public class UserServiceImpl implements UserService {
         responseDTO.setFirstName(entity.getFirstName());
         responseDTO.setLastName(entity.getLastName());
         responseDTO.setEmail(entity.getEmail());
-        responseDTO.setRoleName(entity.getRole().getName());
+        responseDTO.setRoleId(entity.getRole().getId());
         return responseDTO;
     }
 }

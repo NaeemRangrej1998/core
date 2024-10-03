@@ -23,4 +23,6 @@ public interface UserService {
     AddUserResponseDTO updateUserStatusById(Long userId ,boolean activeStatus,GetTokenClaimsDTO claimsDTO);
 
     AddUserResponseDTO updateUser(Long id, RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO);
+
+    void deleteUserById(Long id, GetTokenClaimsDTO claimsDTO);
 }

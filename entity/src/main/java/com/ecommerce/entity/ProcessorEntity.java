@@ -18,7 +18,7 @@ public class ProcessorEntity extends BaseAuditEntity{
     @Column(name = "processor_name")
     private String processorName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private CategoryEntity categoryEntity;
 }

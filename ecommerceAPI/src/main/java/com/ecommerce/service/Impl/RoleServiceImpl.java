@@ -1,5 +1,6 @@
 package com.ecommerce.service.Impl;
 
+import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RoleRequestDTO;
 import com.ecommerce.dto.response.RoleResponseDTO;
 import com.ecommerce.entity.RoleEntity;
@@ -23,7 +24,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponseDTO addRole(RoleRequestDTO requestDTO) {
+    public RoleResponseDTO addRole(RoleRequestDTO requestDTO, GetTokenClaimsDTO claimsDTO) {
         roleRepository.findByName(requestDTO.getRollName())
                 .ifPresent(role -> {
                     throw new CustomException("Role already exists", HttpStatus.BAD_REQUEST);
@@ -51,13 +52,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponseDTO updateRoleById(Long id, RoleRequestDTO requestDTO) {
+    public RoleResponseDTO updateRoleById(Long id, RoleRequestDTO requestDTO, GetTokenClaimsDTO claimsDTO) {
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
 
         roleEntity.setName(requestDTO.getRollName());
         roleRepository.save(roleEntity);
         return mapToRoleResponseDTO(roleEntity);
+    }
+
+    @Override
+    public RoleResponseDTO deleteRoleById(Long id, RoleRequestDTO roleRequestDTO, GetTokenClaimsDTO claimsDTO) {
+        return null;
     }
 
     private RoleResponseDTO mapToRoleResponseDTO(RoleEntity roleEntity) {
