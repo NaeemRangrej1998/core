@@ -4,9 +4,11 @@ import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RoleRequestDTO;
 import com.ecommerce.dto.response.RoleResponseDTO;
 import com.ecommerce.entity.RoleEntity;
+import com.ecommerce.entity.UserEntity;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.service.RoleService;
+import com.ecommerce.utils.CommonUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,12 @@ public class RoleServiceImpl implements RoleService {
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setName(requestDTO.getRollName());
+        roleEntity.setCreatedDate(CommonUtils.getDateTime());
+        roleEntity.setUpdatedDate(CommonUtils.getDateTime());
+        roleEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleEntity.setStatus(true);
+        roleEntity.setDeactivate(false);
         roleRepository.save(roleEntity);
         return mapToRoleResponseDTO(roleEntity);
     }
@@ -57,6 +65,10 @@ public class RoleServiceImpl implements RoleService {
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
 
         roleEntity.setName(requestDTO.getRollName());
+        roleEntity.setUpdatedDate(CommonUtils.getDateTime());
+        roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleEntity.setStatus(true);
+        roleEntity.setDeactivate(false);
         roleRepository.save(roleEntity);
         return mapToRoleResponseDTO(roleEntity);
     }
