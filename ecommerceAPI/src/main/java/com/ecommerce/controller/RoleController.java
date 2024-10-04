@@ -31,33 +31,40 @@ public class RoleController {
     public ResponseEntity<ApiResponse> addUser(@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         RoleResponseDTO addUserResponseDTO = roleService.addRole(roleRequestDTO,claimsDTO);
-        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Role Added", addUserResponseDTO));
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Role Saved  Successfully", addUserResponseDTO));
     }
 
     @GetMapping("/getAllRole")
     public ResponseEntity<ApiResponse> getAllRole() {
     List<RoleResponseDTO> response = roleService.getAllRoles();
-        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 
     @GetMapping("/getRoleById/{id}")
     public ResponseEntity<ApiResponse> getRoleById(@PathVariable(value = "id") Long id, HttpServletRequest request) {
         RoleResponseDTO response  = this.roleService.getRoleById(id);
-        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 
     @PutMapping("/updateRole/{id}")
     public ResponseEntity<ApiResponse> updateRole(@PathVariable(value = "id") Long id,@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         RoleResponseDTO response  = this.roleService.updateRoleById(id, roleRequestDTO,claimsDTO);
-        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, " Role Updated Successfully", response), HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteRole/{id}")
-    public ResponseEntity<ApiResponse> deleteRoleById(@PathVariable(value = "id") Long id,@RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> deleteRoleById(@PathVariable(value = "id") Long id, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
-        RoleResponseDTO response  = this.roleService.deleteRoleById(id, roleRequestDTO,claimsDTO);
-        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Found Successfully", response), HttpStatus.OK);
+         this.roleService.deleteRoleById(id,claimsDTO);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Deleted Successfully"), HttpStatus.OK);
+    }
+
+    @PutMapping("/updateStatus/{activeStatus}/{id}")
+    public ResponseEntity<ApiResponse> updateRoleStatusById(@PathVariable(value = "id") Long id,@PathVariable  Boolean activeStatus, HttpServletRequest request) {
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        this.roleService.updateRoleStatusById(id, activeStatus,claimsDTO);
+        return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Status Updated Successfully"), HttpStatus.OK);
     }
 
 

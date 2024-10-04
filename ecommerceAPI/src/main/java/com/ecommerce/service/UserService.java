@@ -1,13 +1,11 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
-import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.request.RegistrationDTO;
 import com.ecommerce.dto.response.AddUserResponseDTO;
-import com.ecommerce.dto.response.JwtResponseDto;
-import com.ecommerce.dto.response.RefreshTokenResponseDTO;
 import com.ecommerce.dto.response.UserInfoDTO;
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +15,7 @@ public interface UserService {
 
     AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO);
 
-    List<UserInfoDTO> getAllUsers();
+    Page<UserInfoDTO> getAllUsers(Pageable pageable);
 
     UserInfoDTO getUserById(Long userId);
     AddUserResponseDTO updateUserStatusById(Long userId ,boolean activeStatus,GetTokenClaimsDTO claimsDTO);

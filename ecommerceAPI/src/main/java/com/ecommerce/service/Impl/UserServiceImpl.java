@@ -1,7 +1,6 @@
 package com.ecommerce.service.Impl;
 
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
-import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.request.RegistrationDTO;
 import com.ecommerce.dto.response.AddUserResponseDTO;
 
@@ -20,7 +19,9 @@ import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.CommonUtils;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,10 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public List<UserInfoDTO> getAllUsers() {
-        List<UserEntity> userEntity = userRepository.getUserEntityByStatusAndDeactivate(true, false);
-        return userEntity.stream().map(this::mapToUserInfoDTO).collect(Collectors.toList());
+    public Page<UserInfoDTO> getAllUsers(Pageable pageable) {
+        Page<UserEntity> userEntity = userRepository.getUserEntityByStatusAndDeactivate(true, false,pageable);
+        List<UserInfoDTO>List=userEntity.getContent().stream().map(this::mapToUserInfoDTO).toList();
+        return new PageImpl<>(List,pageable,userEntity.getTotalElements());
     }
 
     @Override

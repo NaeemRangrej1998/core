@@ -10,6 +10,10 @@ import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.GetClaimsUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,8 +52,12 @@ public class UserController {
 
 
     @GetMapping("/getUser")
-    public ResponseEntity<ApiResponse> getAllUsers() {
-        List<UserInfoDTO> infoDTO = userService.getAllUsers();
+    public ResponseEntity<ApiResponse> getAllUsers(@RequestParam(defaultValue = "0")Integer pageNo,
+                                                   @RequestParam(defaultValue = "5")Integer pageSize,
+                                                   @RequestParam(defaultValue = "id")String sortBy) {
+
+        Pageable pageable= PageRequest.of(pageNo,pageSize, Sort.by(sortBy));
+        Page<UserInfoDTO> infoDTO = userService.getAllUsers(pageable);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 

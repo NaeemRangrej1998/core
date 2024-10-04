@@ -74,8 +74,25 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponseDTO deleteRoleById(Long id, RoleRequestDTO roleRequestDTO, GetTokenClaimsDTO claimsDTO) {
-        return null;
+    public void deleteRoleById(Long id, GetTokenClaimsDTO claimsDTO) {
+        RoleEntity roleEntity = roleRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
+        roleEntity.setUpdatedDate(CommonUtils.getDateTime());
+        roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleEntity.setStatus(false);
+        roleEntity.setDeactivate(true);
+        roleRepository.save(roleEntity);
+    }
+
+    @Override
+    public void updateRoleStatusById(Long id, Boolean activeStatus, GetTokenClaimsDTO claimsDTO) {
+        RoleEntity roleEntity = roleRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
+        roleEntity.setUpdatedDate(CommonUtils.getDateTime());
+        roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+        roleEntity.setStatus(activeStatus);
+        roleEntity.setDeactivate(true);
+        roleRepository.save(roleEntity);
     }
 
     private RoleResponseDTO mapToRoleResponseDTO(RoleEntity roleEntity) {

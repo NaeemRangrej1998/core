@@ -18,5 +18,7 @@ public interface RoleService {
 
     RoleResponseDTO updateRoleById(Long id, RoleRequestDTO roleRequestDTO, GetTokenClaimsDTO claimsDTO);
 
-    RoleResponseDTO deleteRoleById(Long id, RoleRequestDTO roleRequestDTO, GetTokenClaimsDTO claimsDTO);
+    void deleteRoleById(Long id,GetTokenClaimsDTO claimsDTO);
+
+    void updateRoleStatusById(Long id, Boolean activeStatus, GetTokenClaimsDTO claimsDTO);
 }
