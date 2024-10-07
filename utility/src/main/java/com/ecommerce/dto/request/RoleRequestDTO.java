@@ -1,5 +1,6 @@
 package com.ecommerce.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -8,6 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class RoleRequestDTO {
+
+    @NotBlank(message = "RoleName cannot be blank")
     private String rollName;
 }
 

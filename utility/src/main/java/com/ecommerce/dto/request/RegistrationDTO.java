@@ -1,6 +1,7 @@
 package com.ecommerce.dto.request;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -13,22 +14,20 @@ import lombok.*;
 public class RegistrationDTO {
     private Long id;
 
-    @NotNull(message = "MISSING_FIRST_NAME")
-    @NotEmpty(message = "INVALID_FIRST_NAME")
+    @NotBlank(message = "FirstName cannot be blank")
     private String firstName;
 
-    @NotNull(message = "MISSING_LAST_NAME")
-    @NotEmpty(message = "INVALID_LAST_NAME")
+    @NotBlank(message = "LastName cannot be blank")
     private String lastName;
 
-    @NotNull(message = "MISSING_EMAIL")
-    @NotEmpty(message = "INVALID_EMAIL")
+    @NotBlank(message = "Email cannot be blank")
     @Email(message = "Please Enter Valid Email")
     private String email;
 
+    @NotBlank(message = "Password cannot be blank")
     private String password;
 
-//    private String roleName;
-
+    //    private String roleName;
+//    @NotBlank(message = "RoleId cannot be blank")
     private Long roleId;
 }

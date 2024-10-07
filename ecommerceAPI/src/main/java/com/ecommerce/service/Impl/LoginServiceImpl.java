@@ -3,9 +3,11 @@ package com.ecommerce.service.Impl;
 import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.RefreshTokenResponseDTO;
+import com.ecommerce.entity.RoleMappingEntity;
 import com.ecommerce.entity.UserEntity;
 import com.ecommerce.enums.ExceptionEnum;
 import com.ecommerce.exception.CustomException;
+import com.ecommerce.repository.RoleMappingRepository;
 import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.LoginService;
@@ -17,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService {
@@ -25,7 +29,7 @@ public class LoginServiceImpl implements LoginService {
 
     private final RoleRepository roleRepository;
     private final JwtTokenProvider jwtTokenProvider;
-
+    private final RoleMappingRepository roleMappingRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -34,7 +38,7 @@ public class LoginServiceImpl implements LoginService {
         UserEntity user = userRepository.getUserByEmail(loginRequestDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
 //        String role =user.getRole().getName();
         if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new CustomException(ExceptionEnum.PASSWORD_NOT_CORRECT.getValue(), HttpStatus.NOT_FOUND);
+            throw new CustomException(ExceptionEnum.PASSWORD_NOT_CORRECT.getValue(), HttpStatus.BAD_REQUEST);
         }
         return getTokenResponse(user);
     }
@@ -56,7 +60,16 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private JwtResponseDto getTokenResponse(UserEntity user) {
-        return jwtTokenProvider.createAccessToken(user.getEmail(), user.getRole().getName(), user.getId());
+        String userRole;
+        Optional<RoleMappingEntity> userRoleMappingEntity = roleMappingRepository.findByUserEntity(user);
+
+        if (userRoleMappingEntity.isPresent()) {
+            userRole = userRoleMappingEntity.get().getRoleEntity().getName();
+        } else {
+            throw new CustomException(ExceptionEnum.USER_ROLE_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND);
+        }
+
+        return new JwtResponseDto (jwtTokenProvider.createAccessToken(user.getEmail(), userRole, user.getId()),user.getId(),userRole,user.getFirstName());
     }
 
 }

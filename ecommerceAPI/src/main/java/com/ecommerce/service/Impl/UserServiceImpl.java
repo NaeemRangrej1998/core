@@ -49,59 +49,73 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoDTO getUserById(Long userId) {
-        UserEntity userEntity = getUserEntity(userId);
-        return mapToUserInfoDTO(userEntity);
+        try {
+            UserEntity userEntity = getUserEntity(userId);
+            return mapToUserInfoDTO(userEntity);
+        }catch (CustomException e){
+            throw new CustomException(e.getMessage(),e.getHttpStatus());
+        }
+
     }
 
     @Override
     public AddUserResponseDTO updateUserStatusById(Long userId, boolean activeStatus, GetTokenClaimsDTO claimsDTO) {
-        UserEntity userEntity = getUserEntity(userId);
-        userEntity.setUpdatedDate(CommonUtils.getDateTime());
-        userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
-        userEntity.setStatus(activeStatus);
-        userEntity.setDeactivate(false);
-        UserEntity savedUser = userRepository.save(userEntity);
-        return mapToAddUserResponseDTO(savedUser);
+        try {
+            UserEntity userEntity = getUserEntity(userId);
+            userEntity.setUpdatedDate(CommonUtils.getDateTime());
+            userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            userEntity.setStatus(activeStatus);
+            userEntity.setDeactivate(false);
+            UserEntity savedUser = userRepository.save(userEntity);
+            return mapToAddUserResponseDTO(savedUser);
+        }
+        catch (CustomException e){
+            throw new CustomException(e.getMessage(),e.getHttpStatus());
+        }
+
     }
 
     @Override
     public AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
-
-        Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
+        try {
+            Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
 //        RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
 
-        RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+            RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
 
-        if (userByUsername.isPresent()) {
-            throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
+            if (userByUsername.isPresent()) {
+                throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
+            }
+            UserEntity user = new UserEntity();
+            user.setEmail(userRegisterRequest.getEmail());
+            user.setFirstName(userRegisterRequest.getFirstName());
+            user.setLastName(userRegisterRequest.getLastName());
+            user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+            user.setRole(roleEntity);
+            user.setCreatedDate(CommonUtils.getDateTime());
+            user.setUpdatedDate(CommonUtils.getDateTime());
+            user.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+            user.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            user.setStatus(true);
+            user.setDeactivate(false);
+            UserEntity savedUser = userRepository.save(user);
+
+            RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
+            roleMappingEntity.setUserEntity(user);
+            roleMappingEntity.setRoleEntity(roleEntity);
+            roleMappingEntity.setCreatedDate(CommonUtils.getDateTime());
+            roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
+            roleMappingEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+            roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            roleMappingEntity.setStatus(true);
+            roleMappingEntity.setDeactivate(false);
+            roleMappingRepository.save(roleMappingEntity);
+
+            return mapToAddUserResponseDTO(savedUser);
+        }catch (CustomException e){
+            throw new CustomException(e.getMessage(),e.getHttpStatus());
         }
-        UserEntity user = new UserEntity();
-        user.setEmail(userRegisterRequest.getEmail());
-        user.setFirstName(userRegisterRequest.getFirstName());
-        user.setLastName(userRegisterRequest.getLastName());
-        user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
-        user.setRole(roleEntity);
-        user.setCreatedDate(CommonUtils.getDateTime());
-        user.setUpdatedDate(CommonUtils.getDateTime());
-        user.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
-        user.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
-        user.setStatus(true);
-        user.setDeactivate(false);
-        UserEntity savedUser = userRepository.save(user);
-
-        RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
-        roleMappingEntity.setUserEntity(user);
-        roleMappingEntity.setRoleEntity(roleEntity);
-        roleMappingEntity.setCreatedDate(CommonUtils.getDateTime());
-        roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
-        roleMappingEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
-        roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
-        roleMappingEntity.setStatus(true);
-        roleMappingEntity.setDeactivate(false);
-        roleMappingRepository.save(roleMappingEntity);
-
-        return mapToAddUserResponseDTO(savedUser);
     }
 
     @Override
@@ -119,7 +133,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setStatus(true);
             userEntity.setDeactivate(false);
             userRepository.save(userEntity);
-            Optional<RoleMappingEntity> optionalUser = roleMappingRepository.findById(userEntity.getId());
+            Optional<RoleMappingEntity> optionalUser = roleMappingRepository.findByUserEntity(userEntity);
 
             RoleMappingEntity roleMappingEntity;
             if (optionalUser.isPresent()) {
@@ -162,7 +176,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserInfoDTO mapToUserInfoDTO(UserEntity userEntity) {
-        Optional<List<RoleMappingEntity>> roleMappingsOpt = Optional.ofNullable(roleMappingRepository.findByUserEntity(userEntity));
+//        Optional<List<RoleMappingEntity>> roleMappingsOpt = Optional.ofNullable(roleMappingRepository.findByUserEntity(userEntity));
 
         // Extract role names from role mappings
         UserInfoDTO infoDTO = new UserInfoDTO();

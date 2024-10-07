@@ -29,7 +29,7 @@ public class LoginController {
     }
 
     @PostMapping("/singin")
-    public ResponseEntity<ApiResponse> singInUser(@RequestBody @Valid LoginRequestDto loginRequestDto) {
+    public ResponseEntity<ApiResponse> singInUser(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         try {
             JwtResponseDto jwtResponseDto = loginService.singIn(loginRequestDto);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Sign in Success", jwtResponseDto));

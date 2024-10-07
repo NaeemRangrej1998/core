@@ -72,7 +72,7 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public JwtResponseDto createAccessToken(String username, String role, Long id) {
+    public String createAccessToken(String username, String role, Long id) {
         System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
 //        claims.put("APPLICATION_ROLE","ROLE_"+role.toUpperCase());
@@ -87,7 +87,7 @@ public class JwtTokenProvider {
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
         System.out.println("creare token = " + token);
-        return new JwtResponseDto(token); // Return the token wrapped in JwtResponseDto
+        return token; // Return the token wrapped in JwtResponseDto
 
     }
 

@@ -2,6 +2,7 @@ package com.ecommerce.enums;
 
 public enum ExceptionEnum {
     ACCESS_DENIED("Access denied"),
+    USER_ROLE_NOT_FOUND("User Role Not Found"),
     EXPIRE_JWT_TOKEN("Expire Jwt Token"),
     SOMETHING_WENT_WRONG("Something went wrong"),
     USER_EXISTS("User with this email already Exists", "USER_EXISTS"),

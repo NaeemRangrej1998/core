@@ -11,5 +11,8 @@ import java.util.Optional;
 @Repository
 public interface RoleMappingRepository extends JpaRepository<RoleMappingEntity,Long> {
 
-    List<RoleMappingEntity> findByUserEntity(UserEntity userEntity);
+//    List<RoleMappingEntity> findByUserEntity(UserEntity userEntity);
+
+    Optional<RoleMappingEntity> findByUserEntity(UserEntity userEntity);
+
 }

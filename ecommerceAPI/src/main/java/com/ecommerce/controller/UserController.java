@@ -38,7 +38,7 @@ public class UserController {
 
 
     @PostMapping("/addUser")
-    public ResponseEntity<ApiResponse> addUser(@RequestBody @Valid RegistrationDTO userRegisterRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> addUser(@Valid @RequestBody RegistrationDTO userRegisterRequest, HttpServletRequest request) {
 //        String token = request.getHeader("Authorization");
 //        String token = jwtTokenProvider.resolveToken(request);
 //        System.out.println("id = ");
@@ -74,7 +74,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Status Changed", infoDTO));
     }
     @PutMapping("/updateUser/{id}")
-    public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @RequestBody @Valid RegistrationDTO userRegisterRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @Valid @RequestBody RegistrationDTO userRegisterRequest, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         AddUserResponseDTO infoDTO= userService.updateUser(id, userRegisterRequest,claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Updated Successfully", infoDTO));

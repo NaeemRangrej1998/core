@@ -1,17 +1,28 @@
 package com.ecommerce.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class JwtResponseDto {
 
     private String token;
 
-    public String getToken() {
-        return token;
+    private Long userId;
+
+    private String userRole;
+
+    private String userName;
+
+
+    public JwtResponseDto(String token) {
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-    public JwtResponseDto(String token) {
-        this.token = token;
-    }
+
+
 }
