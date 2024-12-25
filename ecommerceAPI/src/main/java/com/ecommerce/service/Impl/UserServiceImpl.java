@@ -2,6 +2,7 @@ package com.ecommerce.service.Impl;
 
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RegistrationDTO;
+import com.ecommerce.dto.request.UpdateUserDTO;
 import com.ecommerce.dto.response.AddUserResponseDTO;
 
 import com.ecommerce.dto.response.UserInfoDTO;
@@ -101,6 +102,7 @@ public class UserServiceImpl implements UserService {
             user.setDeactivate(false);
             UserEntity savedUser = userRepository.save(user);
 
+
             RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
             roleMappingEntity.setUserEntity(user);
             roleMappingEntity.setRoleEntity(roleEntity);
@@ -119,13 +121,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AddUserResponseDTO updateUser(Long id, RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
+    public AddUserResponseDTO updateUser(Long id, UpdateUserDTO updateUserDTO, GetTokenClaimsDTO claimsDTO) {
         try {
             UserEntity userEntity = getUserEntity(id);
-            RoleEntity roleEntity = getRoleEntity(userRegisterRequest.getRoleId());
-            userEntity.setEmail(userRegisterRequest.getEmail());
-            userEntity.setFirstName(userRegisterRequest.getFirstName());
-            userEntity.setLastName(userRegisterRequest.getLastName());
+            RoleEntity roleEntity = getRoleEntity(updateUserDTO.getRoleId());
+            userEntity.setEmail(updateUserDTO.getEmail());
+            userEntity.setFirstName(updateUserDTO.getFirstName());
+            userEntity.setLastName(updateUserDTO.getLastName());
 //            userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
             userEntity.setRole(roleEntity);
             userEntity.setUpdatedDate(CommonUtils.getDateTime());
@@ -185,7 +187,7 @@ public class UserServiceImpl implements UserService {
         infoDTO.setLastName(userEntity.getLastName());
         infoDTO.setEmail(userEntity.getEmail());
         infoDTO.setPassword(userEntity.getPassword());
-        infoDTO.setRoleId(userEntity.getRole().getId());
+        infoDTO.setRoleId(userEntity.getRole().getName());
 
 //        if (roleMappingsOpt.isPresent()){
 //            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();

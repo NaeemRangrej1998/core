@@ -3,6 +3,7 @@ package com.ecommerce.controller;
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.request.RegistrationDTO;
+import com.ecommerce.dto.request.UpdateUserDTO;
 import com.ecommerce.dto.response.*;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.service.UserService;
@@ -74,9 +75,9 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Status Changed", infoDTO));
     }
     @PutMapping("/updateUser/{id}")
-    public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @Valid @RequestBody RegistrationDTO userRegisterRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UpdateUserDTO updateUserDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
-        AddUserResponseDTO infoDTO= userService.updateUser(id, userRegisterRequest,claimsDTO);
+        AddUserResponseDTO infoDTO= userService.updateUser(id, updateUserDTO,claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Updated Successfully", infoDTO));
     }
 

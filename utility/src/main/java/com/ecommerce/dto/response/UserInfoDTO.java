@@ -22,7 +22,7 @@ public class UserInfoDTO {
 
     private String password;
 
-    private Long roleId;
+    private String roleId;
 
 //    private List<String> rolesNameList;
 }

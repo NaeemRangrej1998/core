@@ -32,7 +32,7 @@ public class UserEntity extends BaseAuditEntity implements UserDetails {
     private String password;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_name")
+    @JoinColumn(name = "role_name",nullable = true)
     private RoleEntity role;
 
     @Override

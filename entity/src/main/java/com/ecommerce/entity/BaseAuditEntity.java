@@ -30,10 +30,10 @@ public class BaseAuditEntity {
     private Boolean deactivate;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    @JoinColumn(name = "created_by", referencedColumnName = "id",nullable = true)
     private UserEntity createdBy;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    @JoinColumn(name = "updated_by", referencedColumnName = "id",nullable = true)
     private UserEntity updatedBy;
 }
