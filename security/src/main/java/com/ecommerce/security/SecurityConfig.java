@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .cors(configure -> configure.configurationSource(crossOriginFilter.corsConfigurationSource()))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(PUBLICURL).permitAll()
-                        .requestMatchers("/role/*","/api/excel/*").hasAuthority("ADMIN")
+                        .requestMatchers("/role/*","/api/excel/*").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )
 //                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
@@ -67,7 +67,7 @@ public class SecurityConfig {
     private static  String[] PUBLICURL= {
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/auth/singin",
+            "/auth/*",
             "/excel/upload","/user/*"
 
     };

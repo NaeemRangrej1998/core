@@ -8,7 +8,8 @@ public enum ExceptionEnum {
     USER_EXISTS("User with this email already Exists", "USER_EXISTS"),
     ROLE_NOT_FOUND("Role Not Found","ROLE_NOT_FOUND"),
     USER_NOT_FOUND("User not found","USER_NOT_FOUND"),
-    PASSWORD_NOT_CORRECT("Password not correct","PASSWORD_NOT_CORRECT");
+    PASSWORD_NOT_CORRECT("Password not correct","PASSWORD_NOT_CORRECT"),
+    USER_EMAIL_NOT_FOUND("User email not found","USER_EMAIL_NOT_FOUND");
     ExceptionEnum(String value) {
         this.value = value;
     }

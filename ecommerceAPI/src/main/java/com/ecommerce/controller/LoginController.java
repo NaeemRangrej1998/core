@@ -1,9 +1,10 @@
 package com.ecommerce.controller;
 
-import com.ecommerce.dto.request.GetTokenClaimsDTO;
+import com.ecommerce.dto.request.ForgotPasswordDto;
 import com.ecommerce.dto.request.LoginRequestDto;
-import com.ecommerce.dto.request.RegistrationDTO;
+import com.ecommerce.dto.request.ResetPasswordTokenDto;
 import com.ecommerce.dto.response.*;
+import com.ecommerce.enums.ExceptionEnum;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.service.LoginService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
@@ -49,6 +50,33 @@ public class LoginController {
             throw e;
         } catch (Exception e) {
             throw new CustomException("Something Went Wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse>getUserEmail(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto, HttpServletRequest request){
+        try{
+            String message = loginService.getUserByEmail(forgotPasswordDto);
+            System.out.println("message = " + message);
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, message));
+        }catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ExceptionEnum.SOMETHING_WENT_WRONG.getValue(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse>resetUserPassword(@Valid @RequestBody ResetPasswordTokenDto resetPasswordTokenDto){
+        try {
+            String message=loginService.resetpassword(resetPasswordTokenDto);
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK,message));
+        }catch (CustomException e){
+            throw e;
+        }catch (Exception e) {
+            throw new CustomException(ExceptionEnum.SOMETHING_WENT_WRONG.getValue(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

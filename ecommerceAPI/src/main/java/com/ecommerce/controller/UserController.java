@@ -54,7 +54,7 @@ public class UserController {
 
     @GetMapping("/getUser")
     public ResponseEntity<ApiResponse> getAllUsers(@RequestParam(defaultValue = "0")Integer pageNo,
-                                                   @RequestParam(defaultValue = "5")Integer pageSize,
+                                                   @RequestParam(defaultValue = "10")Integer pageSize,
                                                    @RequestParam(defaultValue = "id")String sortBy) {
 
         Pageable pageable= PageRequest.of(pageNo,pageSize, Sort.by(sortBy));
