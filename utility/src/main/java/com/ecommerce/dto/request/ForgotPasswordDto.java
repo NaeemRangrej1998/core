@@ -10,4 +10,6 @@ import lombok.*;
 public class ForgotPasswordDto {
     @Email(message = "Please Enter Valid Email")
     private String email;
+
+    private String hostName;
 }

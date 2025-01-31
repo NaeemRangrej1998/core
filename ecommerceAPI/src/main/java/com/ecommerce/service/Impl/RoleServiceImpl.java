@@ -9,11 +9,12 @@ import com.ecommerce.exception.CustomException;
 import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.service.RoleService;
 import com.ecommerce.utils.CommonUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,13 +28,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleResponseDTO addRole(RoleRequestDTO requestDTO, GetTokenClaimsDTO claimsDTO) {
-        roleRepository.findByName(requestDTO.getRollName())
+        roleRepository.findByName(requestDTO.getRoleName())
                 .ifPresent(role -> {
                     throw new CustomException("Role already exists", HttpStatus.BAD_REQUEST);
                 });
 
         RoleEntity roleEntity = new RoleEntity();
-        roleEntity.setName(requestDTO.getRollName());
+        roleEntity.setName(requestDTO.getRoleName());
         roleEntity.setCreatedDate(CommonUtils.getDateTime());
         roleEntity.setUpdatedDate(CommonUtils.getDateTime());
         roleEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
@@ -45,10 +46,9 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<RoleResponseDTO> getAllRoles() {
-        return roleRepository.findAll().stream()
-                .map(this::mapToRoleResponseDTO)
-                .collect(Collectors.toList());
+    public Page<RoleResponseDTO> getAllRoles(String searchValue, Pageable pageable) {
+        List<RoleEntity> roleEntities= roleRepository.findByStatusAndDeactivate(true,false);
+        return roleEntities.stream().map(this::mapToRoleResponseDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -64,7 +64,7 @@ public class RoleServiceImpl implements RoleService {
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
 
-        roleEntity.setName(requestDTO.getRollName());
+        roleEntity.setName(requestDTO.getRoleName());
         roleEntity.setUpdatedDate(CommonUtils.getDateTime());
         roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
         roleEntity.setStatus(true);
@@ -77,6 +77,9 @@ public class RoleServiceImpl implements RoleService {
     public void deleteRoleById(Long id, GetTokenClaimsDTO claimsDTO) {
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
+        if (Boolean.FALSE.equals(roleEntity.getStatus()) && Boolean.TRUE.equals(roleEntity.getDeactivate())) {
+            throw new CustomException("WIDGET_DELETED_WITH_ID", HttpStatus.BAD_REQUEST);
+        }
         roleEntity.setUpdatedDate(CommonUtils.getDateTime());
         roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
         roleEntity.setStatus(false);
@@ -98,7 +101,7 @@ public class RoleServiceImpl implements RoleService {
     private RoleResponseDTO mapToRoleResponseDTO(RoleEntity roleEntity) {
         RoleResponseDTO responseDTO = new RoleResponseDTO();
         responseDTO.setId(roleEntity.getId());
-        responseDTO.setRollName(roleEntity.getName());
+        responseDTO.setRoleName(roleEntity.getName());
         return responseDTO;
     }
 }

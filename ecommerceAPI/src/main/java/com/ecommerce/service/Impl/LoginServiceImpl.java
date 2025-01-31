@@ -18,6 +18,10 @@ import com.ecommerce.service.LoginService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.CommonUtils;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,13 +30,16 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.ZoneOffset;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService {
+    private static final Long VALIDITY_MILLI_SEC = 6 * 60 * 60 * 1000L;
 
     private final UserRepository userRepository;
 
@@ -61,14 +68,33 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public String getUserByEmail(ForgotPasswordDto forgotPasswordDto) {
-        UserEntity userEntity = userRepository.getUserByEmail(forgotPasswordDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_EMAIL_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
+
+//        UserEntity userEntity = userRepository.getUserByEmail(forgotPasswordDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_EMAIL_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
+        Optional<UserEntity> userEntity = userRepository.getUserByEmail(forgotPasswordDto.getEmail());
+
+        // userEntity validation
+        if (userEntity.isEmpty()) {
+//            LOGGER.error("generateForgotPasswordTokenAndSendEmail :: User with email {} does not exists", email);
+            throw new CustomException(ExceptionEnum.USER_DETAILS_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND);
+        }
+        Instant nowInstant = Instant.now();
+        Instant validTillInstant = nowInstant.plusMillis(VALIDITY_MILLI_SEC);
+        LocalDateTime validTillLocalDateTime = LocalDateTime.ofInstant(validTillInstant, ZoneOffset.UTC);
         try {
-            String resetLink = generateResetToken(userEntity);
+            String resetToken = generateForgotPasswordToken(userEntity.get(), validTillInstant.toEpochMilli());
+            ResetTokenEntity tokenEntity = new ResetTokenEntity();
+            tokenEntity.setToken(resetToken);
+            tokenEntity.setUser(userEntity.get());
+            tokenEntity.setTokenValidTill(validTillLocalDateTime);
+            tokenEntity.setCreatedDate(LocalDateTime.now());
+            tokenRepository.save(tokenEntity);
+            // sending email to email id provided
+            String emailUrl = forgotPasswordDto.getHostName()+"reset-password" + "?" + "token"+ "=" + resetToken;
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom("naim.softvan@gmail.com");
-            mailMessage.setTo(userEntity.getEmail());
+            mailMessage.setTo(userEntity.get().getEmail());
             mailMessage.setSubject("Welcome");
-            mailMessage.setText("Hello\n\nPlease Click On this Link To Reset Your Password: " + resetLink);
+            mailMessage.setText("Hello\n\nPlease Click On this Link To Reset Your Password: " + emailUrl);
             System.out.println("mailMessage = " + mailMessage);
 
             javaMailSender.send(mailMessage); // This is likely where the issue occurs
@@ -85,16 +111,21 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public String resetpassword(ResetPasswordTokenDto resetPasswordTokenDto) {
-        UserEntity user = userRepository.getUserByEmail(resetPasswordTokenDto.getEmail()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
-        System.out.println("before user = " + user);
-        if (user == null) {
-            throw new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND);
-        }
-        user.setPassword(passwordEncoder.encode(resetPasswordTokenDto.getNewPassword()));
-        user.setUpdatedDate(CommonUtils.getDateTime());
-        user.setUpdatedBy(user);
-        System.out.println("before user = " + user);
-        userRepository.save(user);
+        String token = resetPasswordTokenDto.getResetToken();
+        // token db check
+        ResetTokenEntity resetTokenEntity = tokenRepository.findByToken(token).orElseThrow(() -> new CustomException(ExceptionEnum.FORGOT_PASSWORD_DETAILS_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
+
+//        UserEntity user = userRepository.getUserByEmail(resetPasswordTokenDto.getResetToken()).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
+//        System.out.println("before user = " + user);
+//        if (user == null) {
+//            throw new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND);
+//        }
+        UserEntity userEntity = resetTokenEntity.getUser();
+        userEntity.setPassword(passwordEncoder.encode(resetPasswordTokenDto.getNewPassword()));
+        userEntity.setUpdatedDate(CommonUtils.getDateTime());
+        userEntity.setUpdatedBy(userEntity);
+        System.out.println("before user = " + userEntity);
+        userRepository.save(userEntity);
         return String.format("PASSWORD_SET_SUCCESSFULLY");
     }
 
@@ -133,9 +164,28 @@ public class LoginServiceImpl implements LoginService {
         resetToken.setCreatedDate(LocalDateTime.now());
         ResetTokenEntity token = tokenRepository.save(resetToken);
         if (token != null) {
-            String endpointUrl = "http://localhost:3001/orgot-password";
-            return endpointUrl + "/" + resetToken.getToken();
+            String endpointUrl = "http://localhost:3001/reset-password";
+            return endpointUrl + "?" + "token" + "=" + resetToken.getToken();
         }
         return "";
+    }
+
+    private String generateForgotPasswordToken(UserEntity user, long epochMilli) {
+        Date now = new Date();
+        Date validTillDate = new Date(epochMilli);
+        Date validity = new Date(validTillDate.getTime());
+        Map<String, Object> claimsMap = new HashMap<>();
+        claimsMap.put("email", user.getEmail());
+        return Jwts.builder()//
+                .addClaims(claimsMap)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode("3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b");
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

@@ -9,7 +9,9 @@ public enum ExceptionEnum {
     ROLE_NOT_FOUND("Role Not Found","ROLE_NOT_FOUND"),
     USER_NOT_FOUND("User not found","USER_NOT_FOUND"),
     PASSWORD_NOT_CORRECT("Password not correct","PASSWORD_NOT_CORRECT"),
-    USER_EMAIL_NOT_FOUND("User email not found","USER_EMAIL_NOT_FOUND");
+    USER_EMAIL_NOT_FOUND("User email not found","USER_EMAIL_NOT_FOUND"),
+    USER_DETAILS_NOT_FOUND("User Not Found","USER_DETAILS_NOT_FOUND"),
+    FORGOT_PASSWORD_DETAILS_NOT_FOUND("Forgot Password Details Not Found");
     ExceptionEnum(String value) {
         this.value = value;
     }

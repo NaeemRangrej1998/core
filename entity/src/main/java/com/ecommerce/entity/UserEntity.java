@@ -37,7 +37,6 @@ public class UserEntity extends BaseAuditEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        System.out.println("role.getName() = " + role.getName());
         return List.of(new SimpleGrantedAuthority(role.getName().toUpperCase()));
     }
 

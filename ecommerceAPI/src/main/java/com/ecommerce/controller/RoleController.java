@@ -8,6 +8,10 @@ import com.ecommerce.service.RoleService;
 import com.ecommerce.utils.GetClaimsUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +40,13 @@ public class RoleController {
     }
 
     @GetMapping("/getAllRole")
-    public ResponseEntity<ApiResponse> getAllRole() {
-    List<RoleResponseDTO> response = roleService.getAllRoles();
+    public ResponseEntity<ApiResponse> getAllRole(@RequestParam(value = "pageNo",defaultValue = "0") Integer pageNo,
+                                                  @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize,
+                                                  @RequestParam(value = "searchValue",required = false, defaultValue = "") String searchValue,
+                                                  @RequestParam(value = "sortBy",defaultValue = "id") String sortBy,
+                                                  @RequestParam(value = "sortBy",defaultValue = "ASC") Sort.Direction sortAs) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortAs));
+        Page<RoleResponseDTO> response = roleService.getAllRoles(searchValue, pageable);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 

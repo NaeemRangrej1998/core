@@ -3,16 +3,16 @@ package com.ecommerce.service;
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RoleRequestDTO;
 import com.ecommerce.dto.response.RoleResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public interface RoleService {
 
     RoleResponseDTO addRole(RoleRequestDTO requestDTO, GetTokenClaimsDTO claimsDTO);
 
-    List<RoleResponseDTO> getAllRoles();
+    Page<RoleResponseDTO> getAllRoles(String searchValue, Pageable pageable);
 
     RoleResponseDTO getRoleById(Long id);
 

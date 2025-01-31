@@ -9,5 +9,5 @@ import lombok.*;
 @RequiredArgsConstructor
 public class RoleResponseDTO {
     private Long id;
-    private String rollName;
+    private String roleName;
 }

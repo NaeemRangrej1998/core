@@ -11,6 +11,6 @@ import lombok.*;
 public class RoleRequestDTO {
 
     @NotBlank(message = "RoleName cannot be blank")
-    private String rollName;
+    private String roleName;
 }
 
