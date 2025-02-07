@@ -46,7 +46,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Page<RoleResponseDTO> getAllRoles(String searchValue, Pageable pageable) {
+    public List<RoleResponseDTO> getAllRoles() {
         List<RoleEntity> roleEntities= roleRepository.findByStatusAndDeactivate(true,false);
         return roleEntities.stream().map(this::mapToRoleResponseDTO).collect(Collectors.toList());
     }

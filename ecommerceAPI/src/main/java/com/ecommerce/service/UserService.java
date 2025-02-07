@@ -16,7 +16,7 @@ public interface UserService {
 
     AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO);
 
-    Page<UserInfoDTO> getAllUsers(Pageable pageable);
+    Page<UserInfoDTO> getAllUsers(Pageable pageable,String searchValue);
 
     UserInfoDTO getUserById(Long userId);
     AddUserResponseDTO updateUserStatusById(Long userId ,boolean activeStatus,GetTokenClaimsDTO claimsDTO);

@@ -40,13 +40,9 @@ public class RoleController {
     }
 
     @GetMapping("/getAllRole")
-    public ResponseEntity<ApiResponse> getAllRole(@RequestParam(value = "pageNo",defaultValue = "0") Integer pageNo,
-                                                  @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize,
-                                                  @RequestParam(value = "searchValue",required = false, defaultValue = "") String searchValue,
-                                                  @RequestParam(value = "sortBy",defaultValue = "id") String sortBy,
-                                                  @RequestParam(value = "sortBy",defaultValue = "ASC") Sort.Direction sortAs) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortAs));
-        Page<RoleResponseDTO> response = roleService.getAllRoles(searchValue, pageable);
+    public ResponseEntity<ApiResponse> getAllRole() {
+//        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortAs));
+        List<RoleResponseDTO> response = roleService.getAllRoles();
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 

@@ -55,10 +55,11 @@ public class UserController {
     @GetMapping("/getUser")
     public ResponseEntity<ApiResponse> getAllUsers(@RequestParam(defaultValue = "0")Integer pageNo,
                                                    @RequestParam(defaultValue = "10")Integer pageSize,
+                                                       @RequestParam(value = "searchValue", required = false, defaultValue = "") String searchValue,
                                                    @RequestParam(defaultValue = "id")String sortBy) {
 
         Pageable pageable= PageRequest.of(pageNo,pageSize, Sort.by(sortBy));
-        Page<UserInfoDTO> infoDTO = userService.getAllUsers(pageable);
+        Page<UserInfoDTO> infoDTO = userService.getAllUsers(pageable,searchValue);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 

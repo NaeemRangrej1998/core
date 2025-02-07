@@ -42,8 +42,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<UserInfoDTO> getAllUsers(Pageable pageable) {
-        Page<UserEntity> userEntity = userRepository.getUserEntityByStatusAndDeactivate(true, false,pageable);
+    public Page<UserInfoDTO> getAllUsers(Pageable pageable,String searchValue) {
+        Page<UserEntity> userEntity = userRepository.getUserByStatusAndDeactivate(true, false,searchValue.trim(),pageable);
         List<UserInfoDTO>List=userEntity.getContent().stream().map(this::mapToUserInfoDTO).toList();
         return new PageImpl<>(List,pageable,userEntity.getTotalElements());
     }
