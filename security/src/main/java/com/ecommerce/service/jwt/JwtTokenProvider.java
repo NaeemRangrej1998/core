@@ -48,7 +48,7 @@ public class JwtTokenProvider {
         return bearerToken;
     }
 
-    public boolean git isTokenValid(String token) {
+    public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSignInKey())
