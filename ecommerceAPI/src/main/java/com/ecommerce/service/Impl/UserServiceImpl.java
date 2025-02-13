@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
         try {
             Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
 
-//        RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+            //RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
 
             RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
 

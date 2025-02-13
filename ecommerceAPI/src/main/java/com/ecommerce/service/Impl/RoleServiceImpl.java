@@ -3,9 +3,13 @@ package com.ecommerce.service.Impl;
 import com.ecommerce.dto.request.GetTokenClaimsDTO;
 import com.ecommerce.dto.request.RoleRequestDTO;
 import com.ecommerce.dto.response.RoleResponseDTO;
+import com.ecommerce.entity.PermissionEntity;
 import com.ecommerce.entity.RoleEntity;
+import com.ecommerce.entity.RolePermissionEntity;
 import com.ecommerce.entity.UserEntity;
 import com.ecommerce.exception.CustomException;
+import com.ecommerce.repository.PermissionRepository;
+import com.ecommerce.repository.RolePermissionRepository;
 import com.ecommerce.repository.RoleRepository;
 import com.ecommerce.service.RoleService;
 import com.ecommerce.utils.CommonUtils;
@@ -14,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,9 +26,13 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
+    private final RolePermissionRepository rolePermissionRepository;
 
-    public RoleServiceImpl(RoleRepository roleRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, PermissionRepository permissionRepository, RolePermissionRepository rolePermissionRepository) {
         this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+        this.rolePermissionRepository = rolePermissionRepository;
     }
 
     @Override
@@ -32,6 +41,14 @@ public class RoleServiceImpl implements RoleService {
                 .ifPresent(role -> {
                     throw new CustomException("Role already exists", HttpStatus.BAD_REQUEST);
                 });
+        //        // Validate if all permissions exist before creating role
+        //        List<PermissionEntity> permissions = new ArrayList<>();
+        //        for (String permissionName : requestDTO.getPermissions()) {
+        //            PermissionEntity permission = permissionRepository.findByName(permissionName)
+        //                    .orElseThrow(() -> new CustomException("Permission not found: " + permissionName, HttpStatus.BAD_REQUEST));
+        //            permissions.add(permission);
+        //        }
+
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setName(requestDTO.getRoleName());
@@ -42,21 +59,58 @@ public class RoleServiceImpl implements RoleService {
         roleEntity.setStatus(true);
         roleEntity.setDeactivate(false);
         roleRepository.save(roleEntity);
-        return mapToRoleResponseDTO(roleEntity);
+
+        List<PermissionEntity> permissions = permissionRepository.findByNameIn(requestDTO.getPermissions());
+        // Assign Permissions to Role
+        for (PermissionEntity permission : permissions) {
+            RolePermissionEntity rolePermission = new RolePermissionEntity();
+            rolePermission.setRole(roleEntity);
+            rolePermission.setPermission(permission);
+            rolePermission.setCreatedDate(CommonUtils.getDateTime());
+            rolePermission.setUpdatedDate(CommonUtils.getDateTime());
+            rolePermission.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+            rolePermission.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            rolePermission.setStatus(true);
+            rolePermission.setDeactivate(false);
+            rolePermissionRepository.save(rolePermission);
+        }
+        return addMapToRoleResponseDTO(roleEntity, permissions);
     }
+
+    //    @Override
+    //    public List<RoleResponseDTO> getAllRoles() {
+    //        List<RoleEntity> roleEntities= roleRepository.findByStatusAndDeactivate(true,false);
+    //        return roleEntities.stream().map(this::mapToRoleResponseDTO).collect(Collectors.toList());
+    //    }
+
 
     @Override
     public List<RoleResponseDTO> getAllRoles() {
-        List<RoleEntity> roleEntities= roleRepository.findByStatusAndDeactivate(true,false);
-        return roleEntities.stream().map(this::mapToRoleResponseDTO).collect(Collectors.toList());
+        // Fetch only active and non-deactivated roles
+        List<RoleEntity> roles = roleRepository.findByStatusAndDeactivate(true, false);
+
+        return roles.stream().map(role -> {
+            List<String> permissions = rolePermissionRepository.findByRole(role)
+                    .stream()
+                    .map(rolePermission -> rolePermission.getPermission().getName())
+                    .collect(Collectors.toList());
+
+            return new RoleResponseDTO(role.getId(), role.getName(), permissions);
+        }).collect(Collectors.toList());
     }
+
 
     @Override
     public RoleResponseDTO getRoleById(Long id) {
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
+        List<String> permissions = rolePermissionRepository.findByRole(roleEntity)
+                .stream()
+                .map(rolePermission -> rolePermission.getPermission().getName())
+                .collect(Collectors.toList());
 
-        return mapToRoleResponseDTO(roleEntity);
+        return new RoleResponseDTO(roleEntity.getId(), roleEntity.getName(), permissions);
+//        return mapToRoleResponseDTO(roleEntity);
     }
 
     @Override
@@ -64,12 +118,19 @@ public class RoleServiceImpl implements RoleService {
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Role not found", HttpStatus.NOT_FOUND));
 
+
+//        List<String> permissions = rolePermissionRepository.findByRole(roleEntity)
+//                .stream()
+//                .map(rolePermission -> rolePermission.getPermission().getName())
+//                .collect(Collectors.toList());
         roleEntity.setName(requestDTO.getRoleName());
         roleEntity.setUpdatedDate(CommonUtils.getDateTime());
         roleEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
         roleEntity.setStatus(true);
         roleEntity.setDeactivate(false);
         roleRepository.save(roleEntity);
+
+
         return mapToRoleResponseDTO(roleEntity);
     }
 
@@ -104,5 +165,21 @@ public class RoleServiceImpl implements RoleService {
         responseDTO.setRoleName(roleEntity.getName());
         return responseDTO;
     }
+
+    private RoleResponseDTO addMapToRoleResponseDTO(RoleEntity roleEntity, List<PermissionEntity> permissions) {
+        RoleResponseDTO responseDTO = new RoleResponseDTO();
+        responseDTO.setId(roleEntity.getId());
+        responseDTO.setRoleName(roleEntity.getName());
+
+        // Convert PermissionEntity list to a list of permission names
+        List<String> permissionNames = permissions.stream()
+                .map(PermissionEntity::getName)
+                .collect(Collectors.toList());
+
+        responseDTO.setPermissions(permissionNames);
+
+        return responseDTO;
+    }
+
 }
 

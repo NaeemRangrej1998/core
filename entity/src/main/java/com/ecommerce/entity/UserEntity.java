@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 @ToString
@@ -35,10 +36,26 @@ public class UserEntity extends BaseAuditEntity implements UserDetails {
     @JoinColumn(name = "role_name",nullable = true)
     private RoleEntity role;
 
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return List.of(new SimpleGrantedAuthority(role.getName().toUpperCase()));
+//    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.getName().toUpperCase()));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+
+        // Add Role as Authority (Example: ROLE_ADMIN)
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName().toUpperCase()));
+
+        // Add Permissions as Authorities (Example: READ, WRITE)
+        for (RolePermissionEntity rolePermission : role.getRolePermissions()) {
+            authorities.add(new SimpleGrantedAuthority(rolePermission.getPermission().getName().toUpperCase()));
+        }
+
+        return authorities;
     }
+
 
     @Override
     public String getUsername() {

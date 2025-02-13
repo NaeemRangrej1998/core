@@ -16,9 +16,7 @@ public class GetClaimsUtils {
 
 
     public GetTokenClaimsDTO getClaims(HttpServletRequest request){
-        System.out.println("token getClaims = " + request.getHeader("Authorization"));
         String token = jwtTokenProvider.resolveToken(request);
-        System.out.println("token getClaims = " + token);
-        return new GetTokenClaimsDTO(jwtTokenProvider.getUserId(token), jwtTokenProvider.getUsername(token), jwtTokenProvider.getRole(token));
+        return new GetTokenClaimsDTO(jwtTokenProvider.getUserId(token), jwtTokenProvider.getUsername(token), jwtTokenProvider.getRole(token),jwtTokenProvider.getPermissions(token));
     }
 }

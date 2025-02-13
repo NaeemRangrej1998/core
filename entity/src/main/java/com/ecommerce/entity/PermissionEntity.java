@@ -14,16 +14,17 @@ import java.util.Set;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "role")
-public class
-RoleEntity extends BaseAuditEntity {
+@Table(name = "permissions_entity")
+public class PermissionEntity extends BaseAuditEntity{
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(unique = true, nullable = false)
+    private String name; // Example: "READ", "WRITE", "UPDATE", "DELETE"
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
     private List<RolePermissionEntity> rolePermissions = new ArrayList<>();
+
 }

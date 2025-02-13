@@ -5,9 +5,7 @@ import com.ecommerce.dto.request.LoginRequestDto;
 import com.ecommerce.dto.request.ResetPasswordTokenDto;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.RefreshTokenResponseDTO;
-import com.ecommerce.entity.ResetTokenEntity;
-import com.ecommerce.entity.RoleMappingEntity;
-import com.ecommerce.entity.UserEntity;
+import com.ecommerce.entity.*;
 import com.ecommerce.enums.ExceptionEnum;
 import com.ecommerce.exception.CustomException;
 import com.ecommerce.repository.RoleMappingRepository;
@@ -149,8 +147,13 @@ public class LoginServiceImpl implements LoginService {
         } else {
             throw new CustomException(ExceptionEnum.USER_ROLE_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND);
         }
+        RoleEntity roleEntity = userRoleMappingEntity.get().getRoleEntity();
+        List<String> permissions = roleEntity.getRolePermissions()
+                .stream()
+                .map(rolePermission -> rolePermission.getPermission().getName()) // Extract permission name
+                .toList();
 
-        return new JwtResponseDto(jwtTokenProvider.createAccessToken(user.getEmail(), userRole, user.getId()), user.getId(), userRole, user.getFirstName());
+        return new JwtResponseDto(jwtTokenProvider.createAccessToken(user.getEmail(), userRole, user.getId(),permissions), user.getId(), userRole, user.getFirstName(),permissions);
     }
 
     public String generateResetToken(UserEntity user) {

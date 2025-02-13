@@ -3,6 +3,7 @@ package com.ecommerce.service.jwt;
 import com.ecommerce.dto.response.JwtResponseDto;
 import com.ecommerce.dto.response.RefreshTokenResponseDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -21,9 +22,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Component
@@ -72,12 +71,16 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public String createAccessToken(String username, String role, Long id) {
+    public String createAccessToken(String username, String role, Long id,List<String> permissions) {
         System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
+        Map<String, Object> authorities = new HashMap<>();
+        authorities.put("role", role.toUpperCase());
+        authorities.put("permission", permissions);
 //        claims.put("APPLICATION_ROLE","ROLE_"+role.toUpperCase());
         claims.put("APPLICATION_ROLE", role);
         claims.put("USER_ID", id);
+        claims.put("authorities", authorities); // Add the authorities map
         Date now = new Date();
         Date validity = new Date(now.getTime() + 900000);
         String token = Jwts.builder()//
@@ -94,8 +97,13 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) throws JsonProcessingException {
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         String role = getRole(token);
+        List<String> permissions=getPermissions(token);
         System.out.println("role getAuthentication= " + role);
         grantedAuthorities.add(new SimpleGrantedAuthority(role));
+        // Add each permission as a granted authority
+        for (String permission : permissions) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(permission));
+        }
         String userEmail = getUsername(token);
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
         return new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
@@ -109,6 +117,31 @@ public class JwtTokenProvider {
                 .getBody()  // Extract the body of the JWT
                 .get("APPLICATION_ROLE");  // Cast the role claim to a String
     }
+
+
+    public List<String> getPermissions(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> authorities = objectMapper.convertValue(claims.get("authorities"), Map.class);
+
+        return (List<String>) authorities.getOrDefault("permission", new ArrayList<>());
+    }
+
+//        public Map<String, Object> getRole(String token) {
+//            Claims claims = Jwts.parserBuilder()
+//                    .setSigningKey(getSignInKey())
+//                    .build()
+//                    .parseClaimsJws(token)
+//                    .getBody();
+//
+//            // Extract the authorities map
+//            return (Map<String, Object>) claims.get("authorities");
+//        }
 
     public Long getUserId(String token) {
         return Long.parseLong(Jwts.parserBuilder()  // Use parserBuilder() instead of parser()

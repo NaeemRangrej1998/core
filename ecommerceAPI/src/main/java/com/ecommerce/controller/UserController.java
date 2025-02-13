@@ -18,6 +18,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,44 +39,48 @@ public class UserController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('CREATE')")
     @PostMapping("/addUser")
     public ResponseEntity<ApiResponse> addUser(@Valid @RequestBody RegistrationDTO userRegisterRequest, HttpServletRequest request) {
-//        String token = request.getHeader("Authorization");
-//        String token = jwtTokenProvider.resolveToken(request);
-//        System.out.println("id = ");
-//        System.out.println("id = " + jwtTokenProvider.getUserId(token));
-//        Long currentUserId= jwtTokenProvider.getUserId(token);
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
-        System.out.println("getTokenClaimsDTO = " + claimsDTO);
         AddUserResponseDTO addUserResponseDTO = userService.registerUser(userRegisterRequest, claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Registered Successfully", addUserResponseDTO));
     }
 
-
+    @PreAuthorize("(hasAuthority('ADMIN') or hasAuthority('USER')) and hasAuthority('READ')")
     @GetMapping("/getUser")
     public ResponseEntity<ApiResponse> getAllUsers(@RequestParam(defaultValue = "0")Integer pageNo,
                                                    @RequestParam(defaultValue = "10")Integer pageSize,
                                                        @RequestParam(value = "searchValue", required = false, defaultValue = "") String searchValue,
-                                                   @RequestParam(defaultValue = "id")String sortBy) {
+                                                   @RequestParam(defaultValue = "id")String sortBy,
+                                                   HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authenticated User: " + auth.getName());
+        System.out.println("User Authorities: " + auth.getAuthorities());
 
+        GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
+        System.out.println("getTokenClaimsDTO = " + claimsDTO);
         Pageable pageable= PageRequest.of(pageNo,pageSize, Sort.by(sortBy));
         Page<UserInfoDTO> infoDTO = userService.getAllUsers(pageable,searchValue);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 
+    @PreAuthorize("(hasAuthority('ADMIN') or hasAuthority('USER')) and hasAuthority('READ')")
     @GetMapping("/getUser/{userId}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable Long userId) {
         UserInfoDTO infoDTO = userService.getUserById(userId);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('UPDATE')")
     @PutMapping("changeStatus/{userId}/{activeStatus}")
     public ResponseEntity<ApiResponse> updateUserStatusById(@PathVariable Long userId, @PathVariable boolean activeStatus, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         AddUserResponseDTO infoDTO = userService.updateUserStatusById(userId, activeStatus, claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Status Changed", infoDTO));
     }
+
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('UPDATE')")
     @PutMapping("/updateUser/{id}")
     public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UpdateUserDTO updateUserDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
@@ -82,6 +88,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Updated Successfully", infoDTO));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('DELETE')")
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<ApiResponse> deleteUserById(@PathVariable("id") Long id, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
