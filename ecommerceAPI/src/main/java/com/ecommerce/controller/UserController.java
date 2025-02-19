@@ -39,15 +39,16 @@ public class UserController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('CREATE')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/addUser")
     public ResponseEntity<ApiResponse> addUser(@Valid @RequestBody RegistrationDTO userRegisterRequest, HttpServletRequest request) {
+        System.out.println("request.getHeader(\"Authorization\") = " + request.getHeader("Authorization"));
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         AddUserResponseDTO addUserResponseDTO = userService.registerUser(userRegisterRequest, claimsDTO);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Registered Successfully", addUserResponseDTO));
     }
 
-    @PreAuthorize("(hasAuthority('ADMIN') or hasAuthority('USER')) and hasAuthority('READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER') and hasPermission(null, 'READ')")
     @GetMapping("/getUser")
     public ResponseEntity<ApiResponse> getAllUsers(@RequestParam(defaultValue = "0")Integer pageNo,
                                                    @RequestParam(defaultValue = "10")Integer pageSize,
@@ -65,14 +66,14 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 
-    @PreAuthorize("(hasAuthority('ADMIN') or hasAuthority('USER')) and hasAuthority('READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER','MEMBER') and hasPermission(null, 'READ')")
     @GetMapping("/getUser/{userId}")
     public ResponseEntity<ApiResponse> getUserById(@PathVariable Long userId) {
         UserInfoDTO infoDTO = userService.getUserById(userId);
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Found Successfully", infoDTO));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('UPDATE')")
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null , 'UPDATE')")
     @PutMapping("changeStatus/{userId}/{activeStatus}")
     public ResponseEntity<ApiResponse> updateUserStatusById(@PathVariable Long userId, @PathVariable boolean activeStatus, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
@@ -80,7 +81,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Status Changed", infoDTO));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('UPDATE')")
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'UPDATE')")
     @PutMapping("/updateUser/{id}")
     public ResponseEntity<ApiResponse> updateUser(@PathVariable("id") Long id, @Valid @RequestBody UpdateUserDTO updateUserDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
@@ -88,7 +89,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "User Updated Successfully", infoDTO));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('DELETE')")
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'DELETE')")
     @DeleteMapping("/deleteUser/{id}")
     public ResponseEntity<ApiResponse> deleteUserById(@PathVariable("id") Long id, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);

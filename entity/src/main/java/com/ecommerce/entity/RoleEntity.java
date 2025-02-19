@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "rolePermissions")  // Exclude the recursive relationship
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +24,6 @@ RoleEntity extends BaseAuditEntity {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<RolePermissionEntity> rolePermissions = new ArrayList<>();
 }

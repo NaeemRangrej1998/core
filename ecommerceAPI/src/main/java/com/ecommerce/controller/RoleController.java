@@ -14,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,7 +34,7 @@ public class RoleController {
         this.claimsUtils = claimsUtils;
     }
 
-
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'WRITE')")
     @PostMapping("/addRole")
     public ResponseEntity<ApiResponse> addUser(@Valid  @RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
@@ -39,33 +42,41 @@ public class RoleController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK, "Role Saved  Successfully", addUserResponseDTO));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER') and hasPermission(null, 'READ')")
     @GetMapping("/getAllRole")
     public ResponseEntity<ApiResponse> getAllRole() {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        System.out.println("auth.getName() = " + auth.getName());
+//        System.out.println("auth.getAuthorities() = " + auth.getAuthorities());
+
 //        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortAs));
         List<RoleResponseDTO> response = roleService.getAllRoles();
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER') and hasPermission(null, 'READ')")
     @GetMapping("/getRoleById/{id}")
     public ResponseEntity<ApiResponse> getRoleById(@PathVariable(value = "id") Long id, HttpServletRequest request) {
         RoleResponseDTO response  = this.roleService.getRoleById(id);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Get Role Successfully", response), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'UPDATE')")
     @PutMapping("/updateRole/{id}")
     public ResponseEntity<ApiResponse> updateRole(@PathVariable(value = "id") Long id,@Valid @RequestBody RoleRequestDTO roleRequestDTO, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
         RoleResponseDTO response  = this.roleService.updateRoleById(id, roleRequestDTO,claimsDTO);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, " Role Updated Successfully", response), HttpStatus.OK);
     }
-
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'DELETE')")
     @DeleteMapping("/deleteRole/{id}")
     public ResponseEntity<ApiResponse> deleteRoleById(@PathVariable(value = "id") Long id, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);
          this.roleService.deleteRoleById(id,claimsDTO);
         return new ResponseEntity<>(new ApiResponse(HttpStatus.OK, "Role Deleted Successfully"), HttpStatus.OK);
     }
-
+    @PreAuthorize("hasRole('ADMIN') and hasPermission(null, 'UPDATE')")
     @PutMapping("/updateStatus/{activeStatus}/{id}")
     public ResponseEntity<ApiResponse> updateRoleStatusById(@PathVariable(value = "id") Long id,@PathVariable  Boolean activeStatus, HttpServletRequest request) {
         GetTokenClaimsDTO claimsDTO = claimsUtils.getClaims(request);

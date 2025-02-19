@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-@ToString
+@ToString(exclude = "role")  // Exclude the recursive relationship
 @Getter
 @Setter
 @Entity
@@ -33,7 +33,7 @@ public class UserEntity extends BaseAuditEntity implements UserDetails {
     private String password;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_name",nullable = true)
+    @JoinColumn(name = "role_id", nullable = true)
     private RoleEntity role;
 
 //    @Override

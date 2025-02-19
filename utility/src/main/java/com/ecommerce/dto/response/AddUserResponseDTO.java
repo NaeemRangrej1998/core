@@ -15,6 +15,6 @@ public class AddUserResponseDTO {
     private String lastName;
     private String email;
 //    private String roleName;
-    private Long roleId;
+    private String userRole;
 
 }

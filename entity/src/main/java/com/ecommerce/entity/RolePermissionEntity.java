@@ -9,6 +9,7 @@ import lombok.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+//@RequiredArgsConstructor
 @Table(name = "role_permissions")
 public class RolePermissionEntity extends BaseAuditEntity {
 
@@ -24,5 +25,9 @@ public class RolePermissionEntity extends BaseAuditEntity {
     @JoinColumn(name = "permission_id", nullable = false)
     private PermissionEntity permission;
 
-
+    // Custom constructor
+    public RolePermissionEntity(RoleEntity role, PermissionEntity permission) {
+        this.role = role;
+        this.permission = permission;
+    }
 }

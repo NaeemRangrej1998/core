@@ -13,8 +13,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.access.AccessDeniedException;
 
-import java.nio.file.AccessDeniedException;
+//import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -47,6 +48,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse> handleAccessDeniedException(HttpServletRequest req, AccessDeniedException e) {
+        System.out.println("Access Denied Exception: " + e.getMessage());
         HttpStatus httpStatus = HttpStatus.FORBIDDEN;
         ErrorDetailsDTO errorDTO = new ErrorDetailsDTO(httpStatus, new Date().getTime(), e.getMessage(), req.getServletPath());
         errorDTO.setError(e.getMessage());

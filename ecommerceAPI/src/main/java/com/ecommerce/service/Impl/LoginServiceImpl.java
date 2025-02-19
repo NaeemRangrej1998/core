@@ -150,6 +150,7 @@ public class LoginServiceImpl implements LoginService {
         RoleEntity roleEntity = userRoleMappingEntity.get().getRoleEntity();
         List<String> permissions = roleEntity.getRolePermissions()
                 .stream()
+                .filter(rolePermission -> rolePermission.getStatus() && !rolePermission.getDeactivate()) // Filter active permissions
                 .map(rolePermission -> rolePermission.getPermission().getName()) // Extract permission name
                 .toList();
 

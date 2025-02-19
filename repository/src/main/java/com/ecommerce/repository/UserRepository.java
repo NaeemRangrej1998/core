@@ -20,9 +20,9 @@ public interface UserRepository extends JpaRepository<UserEntity,Long> {
     Optional<UserEntity> getUserByEmail(String email);
 
     @Query(value = "SELECT * FROM user u WHERE u.status = :status AND u.deactivate = :deactivate " +
-            "AND (u.first_name LIKE %:search% OR u.last_name LIKE %:search% OR u.email LIKE %:search% OR u.role_name LIKE %:search%)",
+            "AND (u.first_name LIKE %:search% OR u.last_name LIKE %:search% OR u.email LIKE %:search% OR u.role_id LIKE %:search%)",
             countQuery = "SELECT COUNT(*) FROM user u WHERE u.status = :status AND u.deactivate = :deactivate " +
-                    "AND (u.first_name LIKE %:search% OR u.last_name LIKE %:search% OR u.email LIKE %:search% OR u.role_name LIKE %:search%)",
+                    "AND (u.first_name LIKE %:search% OR u.last_name LIKE %:search% OR u.email LIKE %:search% OR u.role_id LIKE %:search%)",
             nativeQuery = true)
     Page<UserEntity> getUserByStatusAndDeactivate(@Param("status") Boolean status,
                                                   @Param("deactivate") Boolean deactivate,

@@ -20,9 +20,9 @@ public class UserInfoDTO {
 
     private String email;
 
-    private String password;
+//    private String password;
 
-    private String roleId;
+    private String userRole;
 
 //    private List<String> rolesNameList;
 }

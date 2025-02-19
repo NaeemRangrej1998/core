@@ -15,7 +15,8 @@ public class RoleRequestDTO {
     @NotBlank(message = "RoleName cannot be blank")
     private String roleName;
 
-    private List<String> permissions;
+//    private List<String> permissions;
+    private List<Long> permissions;
 
 }
 

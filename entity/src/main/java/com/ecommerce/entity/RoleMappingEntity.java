@@ -5,7 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"userEntity", "roleEntity"})  // Exclude recursive relationships
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

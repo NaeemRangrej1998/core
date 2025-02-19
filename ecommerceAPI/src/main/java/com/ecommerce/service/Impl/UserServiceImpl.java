@@ -19,6 +19,7 @@ import com.ecommerce.service.UserService;
 import com.ecommerce.service.jwt.JwtTokenProvider;
 import com.ecommerce.utils.CommonUtils;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -42,10 +44,10 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<UserInfoDTO> getAllUsers(Pageable pageable,String searchValue) {
-        Page<UserEntity> userEntity = userRepository.getUserByStatusAndDeactivate(true, false,searchValue.trim(),pageable);
-        List<UserInfoDTO>List=userEntity.getContent().stream().map(this::mapToUserInfoDTO).toList();
-        return new PageImpl<>(List,pageable,userEntity.getTotalElements());
+    public Page<UserInfoDTO> getAllUsers(Pageable pageable, String searchValue) {
+        Page<UserEntity> userEntity = userRepository.getUserByStatusAndDeactivate(true, false, searchValue.trim(), pageable);
+        List<UserInfoDTO> List = userEntity.getContent().stream().map(this::mapToUserInfoDTO).toList();
+        return new PageImpl<>(List, pageable, userEntity.getTotalElements());
     }
 
     @Override
@@ -53,41 +55,70 @@ public class UserServiceImpl implements UserService {
         try {
             UserEntity userEntity = getUserEntity(userId);
             return mapToUserInfoDTO(userEntity);
-        }catch (CustomException e){
-            throw new CustomException(e.getMessage(),e.getHttpStatus());
+        } catch (CustomException e) {
+            throw new CustomException(e.getMessage(), e.getHttpStatus());
         }
 
     }
 
-    @Override
-    public AddUserResponseDTO updateUserStatusById(Long userId, boolean activeStatus, GetTokenClaimsDTO claimsDTO) {
-        try {
-            UserEntity userEntity = getUserEntity(userId);
-            userEntity.setUpdatedDate(CommonUtils.getDateTime());
-            userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
-            userEntity.setStatus(activeStatus);
-            userEntity.setDeactivate(false);
-            UserEntity savedUser = userRepository.save(userEntity);
-            return mapToAddUserResponseDTO(savedUser);
-        }
-        catch (CustomException e){
-            throw new CustomException(e.getMessage(),e.getHttpStatus());
-        }
 
-    }
-
+    //    @Override
+//    public AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
+//        try {
+//            Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
+//
+//            //RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+//
+//            RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+//
+//            if (userByUsername.isPresent()) {
+//                throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
+//            }
+//            UserEntity user = new UserEntity();
+//            user.setEmail(userRegisterRequest.getEmail());
+//            user.setFirstName(userRegisterRequest.getFirstName());
+//            user.setLastName(userRegisterRequest.getLastName());
+//            user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+//            user.setRole(roleEntity);
+//            user.setCreatedDate(CommonUtils.getDateTime());
+//            user.setUpdatedDate(CommonUtils.getDateTime());
+//            user.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+//            user.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+//            user.setStatus(true);
+//            user.setDeactivate(false);
+//            UserEntity savedUser = userRepository.save(user);
+//
+//
+//            RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
+//            roleMappingEntity.setUserEntity(user);
+//            roleMappingEntity.setRoleEntity(roleEntity);
+//            roleMappingEntity.setCreatedDate(CommonUtils.getDateTime());
+//            roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
+//            roleMappingEntity.setCreatedBy(new UserEntity(claimsDTO.getUserId()));
+//            roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+//            roleMappingEntity.setStatus(true);
+//            roleMappingEntity.setDeactivate(false);
+//            roleMappingRepository.save(roleMappingEntity);
+//
+//            return mapToAddUserResponseDTO(savedUser);
+//        }catch (CustomException e){
+//            throw new CustomException(e.getMessage(),e.getHttpStatus());
+//        }
+//    }
     @Override
     public AddUserResponseDTO registerUser(RegistrationDTO userRegisterRequest, GetTokenClaimsDTO claimsDTO) {
         try {
             Optional<UserEntity> userByUsername = userRepository.getUserByEmail(userRegisterRequest.getEmail());
-
-            //RoleEntity roleEntity = roleRepository.findByName(userRegisterRequest.getRoleName()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
-
-            RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getRoleId()).orElseThrow(() -> new CustomException(ExceptionEnum.ROLE_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
+            System.out.println("userByUsername = " + userByUsername);
+            // Ensure role exists
+            RoleEntity roleEntity = roleRepository.findById(userRegisterRequest.getUserRoleId())
+                    .orElseThrow(() -> new CustomException("Role not found!", HttpStatus.NOT_FOUND));
 
             if (userByUsername.isPresent()) {
-                throw new CustomException(ExceptionEnum.USER_EXISTS.getValue(), HttpStatus.BAD_REQUEST);
+                throw new CustomException("User already exists!", HttpStatus.BAD_REQUEST);
             }
+
+            // Create new user
             UserEntity user = new UserEntity();
             user.setEmail(userRegisterRequest.getEmail());
             user.setFirstName(userRegisterRequest.getFirstName());
@@ -100,11 +131,18 @@ public class UserServiceImpl implements UserService {
             user.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
             user.setStatus(true);
             user.setDeactivate(false);
+
+            // Save user
             UserEntity savedUser = userRepository.save(user);
 
+            // Ensure user and role are not null
+            if (savedUser == null || roleEntity == null) {
+                throw new CustomException("User or Role cannot be null", HttpStatus.BAD_REQUEST);
+            }
 
+            // Create role mapping
             RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
-            roleMappingEntity.setUserEntity(user);
+            roleMappingEntity.setUserEntity(savedUser);
             roleMappingEntity.setRoleEntity(roleEntity);
             roleMappingEntity.setCreatedDate(CommonUtils.getDateTime());
             roleMappingEntity.setUpdatedDate(CommonUtils.getDateTime());
@@ -112,11 +150,15 @@ public class UserServiceImpl implements UserService {
             roleMappingEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
             roleMappingEntity.setStatus(true);
             roleMappingEntity.setDeactivate(false);
+
+            // Save role mapping
             roleMappingRepository.save(roleMappingEntity);
 
             return mapToAddUserResponseDTO(savedUser);
-        }catch (CustomException e){
-            throw new CustomException(e.getMessage(),e.getHttpStatus());
+        } catch (CustomException e) {
+            throw new CustomException(e.getMessage(), e.getHttpStatus());
+        } catch (Exception e) {
+            throw new CustomException("Internal Server Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -128,7 +170,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setEmail(updateUserDTO.getEmail());
             userEntity.setFirstName(updateUserDTO.getFirstName());
             userEntity.setLastName(updateUserDTO.getLastName());
-//            userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
+            //            userEntity.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
             userEntity.setRole(roleEntity);
             userEntity.setUpdatedDate(CommonUtils.getDateTime());
             userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
@@ -155,13 +197,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public AddUserResponseDTO updateUserStatusById(Long userId, boolean activeStatus, GetTokenClaimsDTO claimsDTO) {
+        try {
+            UserEntity userEntity = getUserEntity(userId);
+            if (Boolean.FALSE.equals(userEntity.getStatus()) && Boolean.TRUE.equals(userEntity.getDeactivate())) {
+                throw new CustomException(ExceptionEnum.USER_DELETED_WITH_ID.getValue(), HttpStatus.BAD_REQUEST);
+            }
+
+            if (activeStatus) {
+                throw new CustomException(ExceptionEnum.GIVEN_STATUS_AND_DATABASE_STATUS_IS_SAME.getValue(),
+                        HttpStatus.BAD_REQUEST);
+            }
+            userEntity.setStatus(activeStatus);
+            userEntity.setUpdatedDate(CommonUtils.getDateTime());
+            userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
+            UserEntity savedUser = userRepository.save(userEntity);
+            return mapToAddUserResponseDTO(savedUser);
+        } catch (CustomException e) {
+            throw new CustomException(e.getMessage(), e.getHttpStatus());
+        }
+
+    }
+
+    @Override
     public void deleteUserById(Long id, GetTokenClaimsDTO claimsDTO) {
         try {
             UserEntity userEntity = getUserEntity(id);
-            userEntity.setStatus(false);
-            userEntity.setDeactivate(true);
+            if (Boolean.FALSE.equals(userEntity.getStatus()) && Boolean.TRUE.equals(userEntity.getDeactivate())) {
+                throw new CustomException(ExceptionEnum.ROLE_DELETED_WITH_ID.getValue(), HttpStatus.BAD_REQUEST);
+            }
             userEntity.setUpdatedBy(new UserEntity(claimsDTO.getUserId()));
             userEntity.setUpdatedDate(CommonUtils.getDateTime());
+            userEntity.setStatus(false);
+            userEntity.setDeactivate(true);
             userRepository.save(userEntity);
         } catch (CustomException e) {
             throw new CustomException(e.getMessage(), e.getHttpStatus());
@@ -169,16 +237,19 @@ public class UserServiceImpl implements UserService {
 
     }
 
+
     private UserEntity getUserEntity(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new CustomException(ExceptionEnum.USER_NOT_FOUND.getValue(), HttpStatus.NOT_FOUND));
     }
+
 
     private RoleEntity getRoleEntity(Long roleId) {
         return roleRepository.findById(roleId).orElseThrow(() -> new CustomException("Role Not Found", HttpStatus.NOT_FOUND));
     }
 
+
     public UserInfoDTO mapToUserInfoDTO(UserEntity userEntity) {
-//        Optional<List<RoleMappingEntity>> roleMappingsOpt = Optional.ofNullable(roleMappingRepository.findByUserEntity(userEntity));
+        //        Optional<List<RoleMappingEntity>> roleMappingsOpt = Optional.ofNullable(roleMappingRepository.findByUserEntity(userEntity));
 
         // Extract role names from role mappings
         UserInfoDTO infoDTO = new UserInfoDTO();
@@ -186,16 +257,16 @@ public class UserServiceImpl implements UserService {
         infoDTO.setFirstName(userEntity.getFirstName());
         infoDTO.setLastName(userEntity.getLastName());
         infoDTO.setEmail(userEntity.getEmail());
-        infoDTO.setPassword(userEntity.getPassword());
-        infoDTO.setRoleId(userEntity.getRole().getName());
+//        infoDTO.setPassword(userEntity.getPassword());
+        infoDTO.setUserRole(userEntity.getRole().getName());
 
-//        if (roleMappingsOpt.isPresent()){
-//            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();
-//            List<String> rolesNameList = roleMappings.stream()
-//                    .map(mapping -> mapping.getRoleEntity().getName())  // Get the role name
-//                    .toList();
-//            infoDTO.setRolesNameList(rolesNameList);
-//        }
+        //        if (roleMappingsOpt.isPresent()){
+        //            List<RoleMappingEntity> roleMappings = roleMappingsOpt.get();
+        //            List<String> rolesNameList = roleMappings.stream()
+        //                    .map(mapping -> mapping.getRoleEntity().getName())  // Get the role name
+        //                    .toList();
+        //            infoDTO.setRolesNameList(rolesNameList);
+        //        }
         return infoDTO;
     }
 
@@ -205,7 +276,7 @@ public class UserServiceImpl implements UserService {
         responseDTO.setFirstName(entity.getFirstName());
         responseDTO.setLastName(entity.getLastName());
         responseDTO.setEmail(entity.getEmail());
-        responseDTO.setRoleId(entity.getRole().getId());
+        responseDTO.setUserRole(entity.getRole().getName());
         return responseDTO;
     }
 }

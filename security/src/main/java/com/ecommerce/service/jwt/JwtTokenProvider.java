@@ -29,7 +29,7 @@ import java.util.*;
 public class JwtTokenProvider {
     private final UserDetailsService userDetailsService;
 
-    private String secretKey ="3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b";
+    private String secretKey = "3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b";
 //
 //    @Value("${security.jwt.expiration-time}")
 //    private long jwtExpiration;
@@ -71,7 +71,7 @@ public class JwtTokenProvider {
         return subject;  // Get the subject (typically the username)
     }
 
-    public String createAccessToken(String username, String role, Long id,List<String> permissions) {
+    public String createAccessToken(String username, String role, Long id, List<String> permissions) {
         System.out.println("role = " + role);
         Claims claims = Jwts.claims().setSubject(username);
         Map<String, Object> authorities = new HashMap<>();
@@ -89,7 +89,6 @@ public class JwtTokenProvider {
                 .setExpiration(validity)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
-        System.out.println("creare token = " + token);
         return token; // Return the token wrapped in JwtResponseDto
 
     }
@@ -97,16 +96,25 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) throws JsonProcessingException {
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         String role = getRole(token);
-        List<String> permissions=getPermissions(token);
+        List<String> permissions = getPermissions(token);
         System.out.println("role getAuthentication= " + role);
-        grantedAuthorities.add(new SimpleGrantedAuthority(role));
-        // Add each permission as a granted authority
+        //        grantedAuthorities.add(new SimpleGrantedAuthority(role));
+        grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+
+        //        // Add each permission as a granted authority
+        //        for (String permission : permissions) {
+        //            grantedAuthorities.add(new SimpleGrantedAuthority(permission));
+        //        }
+        // Add permissions
         for (String permission : permissions) {
-            grantedAuthorities.add(new SimpleGrantedAuthority(permission));
+            grantedAuthorities.add(new SimpleGrantedAuthority(permission.toUpperCase()));
         }
+        //        String userEmail = getUsername(token);
+        //        UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+        //        return new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
         String userEmail = getUsername(token);
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-        return new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
+        return new UsernamePasswordAuthenticationToken(userDetails, "", grantedAuthorities);
     }
 
     public String getRole(String token) {

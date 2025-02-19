@@ -29,5 +29,5 @@ public class RegistrationDTO {
 
     //    private String roleName;
 //    @NotBlank(message = "RoleId cannot be blank")
-    private Long roleId;
+    private Long userRoleId;
 }
