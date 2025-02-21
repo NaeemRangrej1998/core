@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
     public AddUserResponseDTO updateUser(Long id, UpdateUserDTO updateUserDTO, GetTokenClaimsDTO claimsDTO) {
         try {
             UserEntity userEntity = getUserEntity(id);
-            RoleEntity roleEntity = getRoleEntity(updateUserDTO.getRoleId());
+            RoleEntity roleEntity = getRoleEntity(updateUserDTO.getUserRoleId());
             userEntity.setEmail(updateUserDTO.getEmail());
             userEntity.setFirstName(updateUserDTO.getFirstName());
             userEntity.setLastName(updateUserDTO.getLastName());
