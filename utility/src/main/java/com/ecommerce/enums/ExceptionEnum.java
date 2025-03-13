@@ -13,6 +13,7 @@ public enum ExceptionEnum {
     USER_DETAILS_NOT_FOUND("User Not Found","USER_DETAILS_NOT_FOUND"),
     USER_DELETED_WITH_ID("User with id '%s' is deleted", "USER_DELETED_WITH_ID"),
     ROLE_DELETED_WITH_ID("Role with id '%s' is deleted", "ROLE_DELETED_WITH_ID"),
+    PERMISSION_DELETED_WITH_ID("Permission with id '%s' is deleted", "PERMISSION_DELETED_WITH_ID"),
     GIVEN_STATUS_AND_DATABASE_STATUS_IS_SAME("Given status and database status is same",
             "GIVEN_STATUS_AND_DATABASE_STATUS_IS_SAME"),
     FORGOT_PASSWORD_DETAILS_NOT_FOUND("Forgot Password Details Not Found");

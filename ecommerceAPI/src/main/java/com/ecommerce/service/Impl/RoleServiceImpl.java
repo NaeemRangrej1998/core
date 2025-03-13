@@ -195,7 +195,7 @@ public class RoleServiceImpl implements RoleService {
 
         // deleted condition for role
         if (Boolean.FALSE.equals(roleEntity.getStatus()) && Boolean.TRUE.equals(roleEntity.getDeactivate())) {
-            throw new CustomException(ExceptionEnum.USER_DELETED_WITH_ID.getValue(), HttpStatus.BAD_REQUEST);
+            throw new CustomException(ExceptionEnum.ROLE_DELETED_WITH_ID.getValue(), HttpStatus.BAD_REQUEST);
         }
 
         if (activeStatus.equals(roleEntity.getStatus())) {

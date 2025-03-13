@@ -22,7 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/permission")
-@CrossOrigin("http://localhost:3000")
+//@CrossOrigin("http://localhost:3001")
 public class PermissionController {
 
     private final PermissionService permissionService;
